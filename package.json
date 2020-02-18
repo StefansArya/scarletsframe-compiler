@@ -1,8 +1,10 @@
 {
-  "name": "sfcompiler.js",
+  "name": "scarletsframe-compiler",
   "author": "StefansArya",
+  "description": "A compiler for ScarletsFrame",
   "main": "sfcompiler.js",
-  "version":"0.0.1",
+  "version":"0.0.2",
+  "license": "MIT",
   "dependencies": {
     "@babel/core": "^7.7.2",
     "@babel/preset-env": "^7.7.1",
