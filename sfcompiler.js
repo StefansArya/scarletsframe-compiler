@@ -190,7 +190,6 @@ gulp.task('browser-sync', function(){
 
 // To be executed on Development computer
 gulp.task('default', gulp.parallel(['browser-sync', 'watch-css', 'watch-js', 'watch-html']));
-console.log("Henlos");
 
 // === Compiling Recipe ===
 // 
