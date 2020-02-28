@@ -41,7 +41,7 @@ gulp.task('watch-js', function(done){
 	done();
 });
 gulp.task('js', function(){
-	removeOldMap(path.js.folder);
+	removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 	var temp = gulp.src(compilePath.js);
 
 	if(includeSourceMap)
@@ -98,7 +98,7 @@ gulp.task('watch-css', function(done){
 gulp.task('scss', function(){
 	if(!sass) sass = require('gulp-sass');
 
-	removeOldMap(path.css.folder);
+	removeOldMap(path.css.folder, path.css.file.replace('.css', ''), '.css');
 	var temp = gulp.src(compilePath.css);
 
 	if(includeSourceMap)
@@ -220,10 +220,10 @@ function versioning(target, prefixStart){
 	fs.writeFileSync(target, data.replace(RegExp(regex + '[0-9]+', 'g'), prefixStart+Date.now()), 'utf8');
 }
 
-function removeOldMap(path){
+function removeOldMap(path, filename, format){
 	fs.readdir(path, function(err, files){
 		for (var i = 0, len = files.length; i < len; i++) {
-			if(files[i].match(/.*\.min.*\.(js|css)\.map/) !== null)
+			if(files[i].indexOf(filename) === 0 && files[i].indexOf(format+'.map') !== -1)
 				fs.unlinkSync(path+files[i]);
 		}
 	});
