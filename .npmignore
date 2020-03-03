@@ -4,3 +4,4 @@ example
 src
 pnpm-lock.yaml
 _config.yml
+node_modules
