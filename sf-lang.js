@@ -21,6 +21,9 @@ function fileChanges(lang){
 }
 
 function initLang(){
+	if(config === void 0)
+		return;
+
 	var saveDir = config.saveDir;
 	if(config.defaultLang.indexOf('-') !== -1)
 		console.error("[sf-lang] Please use _ instead of - when specifying default language");
@@ -106,6 +109,9 @@ function translate(keyPath, text, force){
 }
 
 function newChanges(file, stats){
+	if(config === void 0)
+		return;
+
 	file = file.split('\\').join('/');
 
 	if(writtingFile.has(file))
@@ -384,7 +390,7 @@ module.exports = function(config_){
 		scan:newChanges,
 		jsPipe:function(){
 			return through.obj(function(file, encode, callback){
-				if(langs[config.defaultLang] === void 0)
+				if(config === void 0 || langs[config.defaultLang] === void 0)
 					return callback(null, file);
 
 				var data = flattenFlip(langs[config.defaultLang]);
@@ -405,6 +411,9 @@ module.exports = function(config_){
 			})
 		},
 		watch:function(){
+			if(config === void 0)
+				return;
+
 			// Enable auto reload if file was changed not from the program
 			fs.watch(config.saveDir, {recursive:true}, function(eventType, filename){
 				if(eventType !== 'change' || !filename || fileChanged[filename])
