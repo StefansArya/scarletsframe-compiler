@@ -43,7 +43,7 @@ function prepareJS(){
 		gulp.task(name, jsTask(obj));
 
 		var call = gulp.series(name);
-		if(compiling === false)
+		if(compiling === false){
 			gulp.watch(obj.js.combine).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
@@ -54,6 +54,10 @@ function prepareJS(){
 
 				call();
 			});
+
+			if(obj.startupCompile)
+				setTimeout(call, 500);
+		}
 
 		else call();
 	});
@@ -123,7 +127,7 @@ function prepareSCSS(){
 		gulp.task(name, scssTask(obj));
 
 		var call = gulp.series(name);
-		if(compiling === false)
+		if(compiling === false){
 			gulp.watch(obj.scss.combine).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
@@ -131,6 +135,10 @@ function prepareSCSS(){
 				last = stats.ctimeMs;
 				call();
 			});
+
+			if(obj.startupCompile)
+				setTimeout(call, 500);
+		}
 
 		else call();
 	});
@@ -217,6 +225,9 @@ function prepareHTML(){
 
 				call();
 			});
+
+			if(obj.startupCompile)
+				setTimeout(call, 500);
 		}
 
 		else call();
@@ -241,6 +252,9 @@ gulp.task('browser-sync', function(){
 		return;
 
 	init();
+
+	if(obj.startupCompile === 'prod')
+		compiling = true;
 
 	notifier = require('node-notifier');
 	browserSync = require('browser-sync');
