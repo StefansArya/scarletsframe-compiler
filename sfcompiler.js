@@ -34,7 +34,7 @@ function init(){
 }
 
 // === Javascript Recipe ===
-// 
+//
 function prepareJS(){
 	watchPath('js', function(name, obj){
 		var last = 0;
@@ -118,7 +118,7 @@ function jsTask(path){
 }
 
 // === SCSS Recipe ===
-// 
+//
 function prepareSCSS(){
 	watchPath('scss', function(name, obj){
 		var last = 0;
@@ -194,7 +194,7 @@ function scssTask(path){
 }
 
 // === HTML Recipe ===
-// 
+//
 function prepareHTML(){
 	watchPath('html', function(name, obj){
 		var last = 0;
@@ -213,7 +213,7 @@ function prepareHTML(){
 					SFLang.scan(file, stats);
 				});
 
-				obj.combine = excludeSource(obj.combine, obj.static);
+				// obj.combine = excludeSource(obj.combine, obj.static);
 			}
 
 			gulp.watch(obj.html.combine).on('change', function(file, stats){
@@ -246,7 +246,7 @@ function htmlTask(path){
 }
 
 // === Other ===
-// 
+//
 gulp.task('browser-sync', function(){
 	if(!obj.browserSync)
 		return;
@@ -305,7 +305,8 @@ function excludeSource(old, news){
 
 	if(news.constructor === Array){
 		for (var i = 0; i < news.length; i++) {
-			old.push('!'+news[i]);
+			if(news[i][0] !== '!')
+				old.push('!'+news[i]);
 		}
 	}
 	else old.push(news);
@@ -333,8 +334,11 @@ function watchPath(which, watch){
 		var temp = path[list[i]];
 
 		// Check if default was exist
-		if(default_ && default_[which])
-			default_[which].combine = excludeSource(default_[which].combine, temp[which].combine);
+		// if(default_ && default_[which])
+		// 	default_[which].combine = excludeSource(default_[which].combine, temp[which].combine);
+
+		if(temp[which] === void 0)
+			continue;
 
 		// Separate file name and folder path
 		temp[which].file = splitFolderPath(temp[which].file);
