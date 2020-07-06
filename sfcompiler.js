@@ -2,6 +2,7 @@ module.exports = function(obj, gulp){
 // Load variables
 var path = obj.path;
 var includeSourceMap = obj.includeSourceMap;
+var hotReload = obj.hotReload || {};
 
 // Load dependency
 var concat = require('gulp-concat');
@@ -23,14 +24,14 @@ var sass = null;
 var compiling = false;
 
 function init(){
-	console.log("[Preparing] .js handler");
 	prepareJS();
+	console.log("[Prepared] .js handler");
 
-	console.log("[Preparing] .scss handler");
 	prepareSCSS();
+	console.log("[Prepared] .scss handler");
 
-	console.log("[Preparing] .html handler");
 	prepareHTML();
+	console.log("[Prepared] .html handler");
 }
 
 // === Javascript Recipe ===
@@ -51,6 +52,12 @@ function prepareJS(){
 				last = stats.ctimeMs;
 				if(SFLang.scan(file, stats))
 					return;
+
+				if(browserSync && hotReload.js === true){
+					var changed = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+					browserSync.sockets.emit('sf-hot-js', changed);
+					browserSync.notify("JavaScript Reloaded");
+				}
 
 				call();
 			});
@@ -95,11 +102,11 @@ function jsTask(path){
 			temp = temp.pipe(header(path.js.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.', {
+			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
 				mapFile: function(mapFilePath) {
 					return mapFilePath.replace('js.map', startTime+'.js.map');
 				}
-			}))
+			} : void 0))
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 				if(notifier)
@@ -108,7 +115,7 @@ function jsTask(path){
 						message: 'JavaScript was finished!'
 					});
 
-				if(browserSync)
+				if(browserSync && hotReload.js === void 0)
 					browserSync.reload(path.js.folder+path.js.file);
 			});
 
@@ -169,24 +176,24 @@ function scssTask(path){
 			temp = temp.pipe(header(path.scss.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.', {
+			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
 				mapFile: function(mapFilePath) {
 					return mapFilePath.replace('css.map', startTime+'.css.map');
 				}
-			}));
+			} : void 0));
 
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
-				if(notifier)
-					notifier.notify({
-						title: 'Gulp Compilation',
-						message: 'SCSS was finished!'
-					});
+			if(notifier)
+				notifier.notify({
+					title: 'Gulp Compilation',
+					message: 'SCSS was finished!'
+				});
 
-				if(browserSync){
-					browserSync.reload(path.scss.folder+path.scss.file);
-					browserSync.notify("SCSS Reloaded");
-				}
-			});
+			if(browserSync && hotReload.scss !== false){
+				browserSync.reload(path.scss.folder+path.scss.file);
+				browserSync.notify("SCSS Reloaded");
+			}
+		});
 
 		versioning(path.versioning, path.scss.folder.replace(path.stripURL || '#$%!.', '')+path.scss.file+'?', startTime);
 		return temp;
@@ -223,6 +230,14 @@ function prepareHTML(){
 				last = stats.ctimeMs;
 				SFLang.scan(file, stats);
 
+				if(browserSync && hotReload.html === true){
+					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+					content = content.replace(/'/g, "\\'").replace(/\r/g, "").replace(/\n/g, '\\n');
+					content = `window.templates['nodes/button.html'] = '${content}';window.templates=window.templates`;
+					browserSync.sockets.emit('sf-hot-html', content);
+					browserSync.notify("HTML Reloaded");
+				}
+
 				call();
 			});
 
@@ -240,8 +255,14 @@ function htmlTask(path){
 
 		return gulp.src(path.html.combine)
 			.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
-			.pipe(header((path.html.header+"\n" || '') + "\nif(window.templates === void 0)"))
-			.pipe(gulp.dest(path.html.folder));
+			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
+			.pipe(gulp.dest(path.html.folder)).on('end', function(){
+				if(notifier)
+					notifier.notify({
+						title: 'Gulp Compilation',
+						message: 'HTML was finished!'
+					});
+			});
 	}
 }
 
@@ -256,10 +277,12 @@ gulp.task('browser-sync', function(){
 	if(obj.startupCompile === 'prod')
 		compiling = true;
 
+	console.log("[Preparing] BrowserSync");
+
 	notifier = require('node-notifier');
 	browserSync = require('browser-sync');
 	SFLang.watch();
-	browserSync.init(null, obj.browserSync);
+	browserSync = browserSync.init(null, obj.browserSync);
 });
 
 // To be executed on Development computer
