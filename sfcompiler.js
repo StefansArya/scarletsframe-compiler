@@ -212,17 +212,23 @@ function prepareHTML(){
 		var call = gulp.series(name);
 		if(compiling === false){
 			if(obj.static !== void 0){
-				gulp.watch(obj.html.combine).on('change', function(file, stats){
+				gulp.watch(obj.static).on('change', function(file, stats){
 					if(last === stats.ctimeMs)
 						return;
 
 					last = stats.ctimeMs;
 					SFLang.scan(file, stats);
+
+					if(browserSync && hotReload.static === true){
+						browserSync.sockets.emit('sf-hot-static', file);
+						browserSync.notify("Static HTML have an update");
+					}
 				});
 
 				// obj.combine = excludeSource(obj.combine, obj.static);
 			}
 
+			var htmlPath;
 			gulp.watch(obj.html.combine).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
@@ -231,9 +237,29 @@ function prepareHTML(){
 				SFLang.scan(file, stats);
 
 				if(browserSync && hotReload.html === true){
+					if(htmlPath === void 0){
+						if(obj.html.combine.constructor === String)
+							htmlPath = [obj.html.combine.split('*')[0].split('\\').join('/')];
+						else{
+							htmlPath = obj.html.combine.slice(0);
+							for (var i = 0; i < htmlPath.length; i++) {
+								htmlPath[i] = htmlPath[i].split('*')[0].split('\\').join('/');
+							}
+						}
+					}
+
 					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 					content = content.replace(/'/g, "\\'").replace(/\r/g, "").replace(/\n/g, '\\n');
-					content = `window.templates['nodes/button.html'] = '${content}';window.templates=window.templates`;
+
+					file = file.split('\\').join('/');
+					for (var i = 0; i < htmlPath.length; i++) {
+						if(file.indexOf(htmlPath[i]) === 0){
+							file = file.replace(htmlPath[i], '');
+							break;
+						}
+					}
+
+					content = `window.templates['${file}'] = '${content}';window.templates=window.templates`;
 					browserSync.sockets.emit('sf-hot-html', content);
 					browserSync.notify("HTML Reloaded");
 				}
