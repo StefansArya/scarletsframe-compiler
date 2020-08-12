@@ -62,7 +62,14 @@ function prepareJS(){
 				call();
 			});
 
-			if(obj.startupCompile)
+			var isExist = obj.path.js;
+			isExist = fs.existsSync(isExist.folder+isExist.file);
+
+			if(!isExist){
+				console.log("[First-Time] Compiling JavaScript for '"+name+"'..");
+				call();
+			}
+			else if(obj.startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -70,6 +77,10 @@ function prepareJS(){
 	});
 }
 function jsTask(path){
+	var folderLastPath = path.js.folder.slice(-1);
+	if(folderLastPath !== '/' || folderLastPath !== '\\')
+		path.js.folder += '/';
+
 	return function(){
 		var startTime = Date.now();
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
@@ -143,7 +154,15 @@ function prepareSCSS(){
 				call();
 			});
 
-			if(obj.startupCompile)
+
+			var isExist = obj.path.scss;
+			isExist = fs.existsSync(isExist.folder+isExist.file);
+
+			if(!isExist){
+				console.log("[First-Time] Compiling SCSS for '"+name+"'..");
+				call();
+			}
+			else if(obj.startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -152,6 +171,9 @@ function prepareSCSS(){
 }
 function scssTask(path){
 	if(!sass) sass = require('gulp-sass');
+	var folderLastPath = path.scss.folder.slice(-1);
+	if(folderLastPath !== '/' || folderLastPath !== '\\')
+		path.scss.folder += '/';
 
 	return function(){
 		var startTime = Date.now();
@@ -267,7 +289,14 @@ function prepareHTML(){
 				call();
 			});
 
-			if(obj.startupCompile)
+			var isExist = obj.path.html;
+			isExist = fs.existsSync(isExist.folder+isExist.file);
+
+			if(!isExist){
+				console.log("[First-Time] Compiling HTML for '"+name+"'..");
+				call();
+			}
+			else if(obj.startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -275,6 +304,10 @@ function prepareHTML(){
 	});
 }
 function htmlTask(path){
+	var folderLastPath = path.html.folder.slice(-1);
+	if(folderLastPath !== '/' || folderLastPath !== '\\')
+		path.html.folder += '/';
+
 	return function(){
 		var startTime = Date.now();
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
@@ -303,7 +336,7 @@ gulp.task('browser-sync', function(){
 	if(obj.startupCompile === 'prod')
 		compiling = true;
 
-	console.log("[Preparing] BrowserSync");
+	console.log("[Preparing] BrowserSync as server");
 
 	notifier = require('node-notifier');
 	browserSync = require('browser-sync');
