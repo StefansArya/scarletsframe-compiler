@@ -62,7 +62,7 @@ function prepareJS(){
 				call();
 			});
 
-			var isExist = obj.path.js;
+			var isExist = obj.js;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
@@ -155,7 +155,7 @@ function prepareSCSS(){
 			});
 
 
-			var isExist = obj.path.scss;
+			var isExist = obj.scss;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
@@ -289,7 +289,7 @@ function prepareHTML(){
 				call();
 			});
 
-			var isExist = obj.path.html;
+			var isExist = obj.html;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
