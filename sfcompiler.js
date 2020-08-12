@@ -407,13 +407,27 @@ function splitFolderPath(fullPath){
 	return [file, folder];
 }
 
+// Check if some file type haven't been supported
+function checkIncompatiblePath(name, obj){
+	if(obj.css !== void 0)
+		console.error("[Paths: "+name+"] Currently plain CSS haven't been supported, use SCSS instead");
+	if(obj.sass !== void 0)
+		console.error("[Paths: "+name+"] You can specify .sass inside of SCSS paths");
+	if(obj.jsx !== void 0)
+		console.error("[Paths: "+name+"] JSX haven't been supported, use HTML instead");
+	if(obj.stylus !== void 0)
+		console.error("[Paths: "+name+"] Sytlus haven't been supported yet, use SCSS instead..");
+	if(obj.less !== void 0)
+		console.error("[Paths: "+name+"] 'Less' compiler haven't been supported yet, use SCSS instead..");
+}
+
 function watchPath(which, watch){
 	var default_ = path.default;
 	delete path.default;
 
-	var list = Object.keys(path);
-	for (var i = 0; i < list.length; i++) {
-		var temp = path[list[i]];
+	for(var key in path){
+		var temp = path[key];
+		checkIncompatiblePath('key', temp);
 
 		// Check if default was exist
 		// if(default_ && default_[which])
@@ -427,10 +441,12 @@ function watchPath(which, watch){
 		temp[which].folder = temp[which].file.pop();
 		temp[which].file = temp[which].file[0];
 
-		watch(list[i], temp);
+		watch(key, temp);
 	}
 
 	if(default_){
+		checkIncompatiblePath('default', default_);
+
 		// Separate file name and folder path
 		default_[which].file = splitFolderPath(default_[which].file);
 		default_[which].folder = default_[which].file.pop();
