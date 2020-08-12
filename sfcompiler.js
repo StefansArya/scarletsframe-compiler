@@ -78,7 +78,7 @@ function prepareJS(){
 }
 function jsTask(path){
 	var folderLastPath = path.js.folder.slice(-1);
-	if(folderLastPath !== '/' || folderLastPath !== '\\')
+	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.js.folder += '/';
 
 	return function(){
@@ -172,7 +172,7 @@ function prepareSCSS(){
 function scssTask(path){
 	if(!sass) sass = require('gulp-sass');
 	var folderLastPath = path.scss.folder.slice(-1);
-	if(folderLastPath !== '/' || folderLastPath !== '\\')
+	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.scss.folder += '/';
 
 	return function(){
@@ -305,7 +305,7 @@ function prepareHTML(){
 }
 function htmlTask(path){
 	var folderLastPath = path.html.folder.slice(-1);
-	if(folderLastPath !== '/' || folderLastPath !== '\\')
+	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.html.folder += '/';
 
 	return function(){
