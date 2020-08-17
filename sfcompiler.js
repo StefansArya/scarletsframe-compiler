@@ -54,7 +54,7 @@ function prepareJS(){
 
 		var call = gulp.series(name);
 		if(compiling === false){
-			var rootPath = obj.js.combine || obj.js.module;
+			var rootPath = obj.js.combine || obj.js.module.from;
 			if(obj.js.module !== void 0){
 				rootPath = rootPath.split('\\').join('/').split('/');
 				rootPath.pop();
@@ -151,7 +151,7 @@ function jsTaskModule(path){
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
 		var temp, jm;
-		temp = gulp.src(path.js.combine || path.js.module);
+		temp = gulp.src(path.js.combine || path.js.module.from);
 
 		if(path.js.module){
 			jm = jsModule;
@@ -173,7 +173,7 @@ function jsTaskModule(path){
 			temp = temp.pipe(jm.rollup({
 		    	plugins: plugins
 		    }, {
-		    	format: 'iife'
+		    	format: path.js.module.format || 'cjs'
 		    }));
 		}
 
