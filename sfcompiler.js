@@ -13,7 +13,6 @@ var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
 
 // lazy init to improve startup performance
-var notifier = false;
 var browserSync = false;
 var csso = null;
 var uglify = null;
@@ -41,11 +40,28 @@ function prepareJS(){
 		var last = 0;
 
 		name = 'js-'+name;
-		gulp.task(name, jsTask(obj));
+
+		var folderLastPath = obj.js.folder.slice(-1);
+		if(folderLastPath !== '/' && folderLastPath !== '\\')
+			obj.js.folder += '/';
+
+		if(obj.js.combine)
+			gulp.task(name, jsTask(obj));
+		else if(obj.js.module)
+			gulp.task(name, jsTaskModule(obj));
+		else
+			console.error(".js settings only support 'combine' or 'module'");
 
 		var call = gulp.series(name);
 		if(compiling === false){
-			gulp.watch(obj.js.combine).on('change', function(file, stats){
+			var rootPath = obj.js.combine || obj.js.module;
+			if(obj.js.module !== void 0){
+				rootPath = rootPath.split('\\').join('/').split('/');
+				rootPath.pop();
+				rootPath = rootPath.join('/') + '/**/*.js';
+			}
+
+			gulp.watch(rootPath).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
@@ -77,10 +93,6 @@ function prepareJS(){
 	});
 }
 function jsTask(path){
-	var folderLastPath = path.js.folder.slice(-1);
-	if(folderLastPath !== '/' && folderLastPath !== '\\')
-		path.js.folder += '/';
-
 	return function(){
 		var startTime = Date.now();
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
@@ -120,11 +132,85 @@ function jsTask(path){
 			} : void 0))
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
-				if(notifier)
-					notifier.notify({
-						title: 'Gulp Compilation',
-						message: 'JavaScript was finished!'
-					});
+				if(obj.onCompiled)
+					obj.onCompiled('JavaScript');
+
+				if(browserSync && hotReload.js === void 0)
+					browserSync.reload(path.js.folder+path.js.file);
+			});
+
+		versioning(path.versioning, path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file+'?', startTime);
+		return temp;
+	}
+}
+
+var jsModule = {};
+function jsTaskModule(path){
+	return function(){
+		var startTime = Date.now();
+		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
+
+		var temp, jm;
+		temp = gulp.src(path.js.combine || path.js.module);
+
+		if(path.js.module){
+			jm = jsModule;
+
+			if(!jm.rollup)
+				jm.rollup = require('gulp-better-rollup');
+			if(!jm.commonjs)
+				jm.commonjs = require('@rollup/plugin-commonjs');
+			if(!jm.resolve)
+				jm.resolve = require('@rollup/plugin-node-resolve');
+
+			var plugins = [jm.commonjs(), jm.resolve.nodeResolve()];
+			if(compiling){
+				if(!jm.babel)
+					jm.babel = require('@rollup/plugin-babel');
+				plugins.shift(jm.babel());
+			}
+
+			temp = temp.pipe(jm.rollup({
+		    	plugins: plugins
+		    }, {
+		    	format: 'iife'
+		    }));
+		}
+
+		if(includeSourceMap)
+			temp = temp.pipe(sourcemaps.init());
+
+		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
+		if(!jm && compiling){
+			if(!uglify) uglify = require('gulp-uglify-es').default;
+
+			temp = temp.pipe(babel({
+				babelrc: false,
+				presets: [
+					["@babel/preset-env", {
+						targets: {
+							ie: "11"
+						},
+						modules: false,
+						loose: true
+					}]
+				]
+			})).on('error', swallowError).pipe(uglify({mangle: {toplevel: true}})).on('error', swallowError);
+		}
+
+		if(path.js.header)
+			temp = temp.pipe(header(path.js.header+"\n"));
+
+		if(includeSourceMap)
+			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
+				mapFile: function(mapFilePath) {
+					return mapFilePath.replace('js.map', startTime+'.js.map');
+				}
+			} : void 0))
+
+		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
+				if(obj.onCompiled)
+					obj.onCompiled('JavaScript');
 
 				if(browserSync && hotReload.js === void 0)
 					browserSync.reload(path.js.folder+path.js.file);
@@ -205,11 +291,8 @@ function scssTask(path){
 			} : void 0));
 
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
-			if(notifier)
-				notifier.notify({
-					title: 'Gulp Compilation',
-					message: 'SCSS was finished!'
-				});
+			if(obj.onCompiled)
+				obj.onCompiled('SCSS');
 
 			if(browserSync && hotReload.scss !== false){
 				browserSync.reload(path.scss.folder+path.scss.file);
@@ -316,11 +399,8 @@ function htmlTask(path){
 			.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
 			.pipe(gulp.dest(path.html.folder)).on('end', function(){
-				if(notifier)
-					notifier.notify({
-						title: 'Gulp Compilation',
-						message: 'HTML was finished!'
-					});
+				if(obj.onCompiled)
+					obj.onCompiled('HTML');
 			});
 	}
 }
@@ -338,7 +418,6 @@ gulp.task('browser-sync', function(){
 
 	console.log("[Preparing] BrowserSync as server");
 
-	notifier = require('node-notifier');
 	browserSync = require('browser-sync');
 	SFLang.watch();
 	browserSync = browserSync.init(null, obj.browserSync);
