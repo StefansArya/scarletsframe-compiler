@@ -364,7 +364,7 @@ function prepareHTML(){
 						}
 					}
 
-					content = `window.templates['${file}'] = '${content}';window.templates=window.templates`;
+					content = `window.templates['${obj.html.prefix+'/'+file}'] = '${content}';window.templates=window.templates`;
 					browserSync.sockets.emit('sf-hot-html', content);
 					browserSync.notify("HTML Reloaded");
 				}
