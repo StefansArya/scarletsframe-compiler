@@ -110,13 +110,16 @@ function jsTask(path){
 			temp = temp.pipe(babel({
 				babelrc: false,
 				presets: [
-					["@babel/preset-env", {
-						targets: {
-							ie: "11"
-						},
-						modules: false,
-						loose: true
-					}]
+			        [
+			          "@babel/preset-env", {
+			            targets: {
+			              ie: "11"
+			            },
+			            modules: false,
+			            loose: false,
+			            shippedProposals: true
+			          }
+			        ]
 				]
 			})).on('error', swallowError).pipe(uglify({mangle: {toplevel: true}})).on('error', swallowError);
 		}
