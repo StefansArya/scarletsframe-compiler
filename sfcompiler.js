@@ -8,6 +8,7 @@ var hotReload = obj.hotReload || {};
 var concat = require('gulp-concat');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs = require('gulp-html-to-js');
+var htmlmin = require('gulp-htmlmin');
 var header = require('gulp-header');
 var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
@@ -399,6 +400,7 @@ function htmlTask(path){
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
 		return gulp.src(path.html.combine)
+			.pipe(htmlmin({ collapseWhitespace: true }))
 			.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
 			.pipe(gulp.dest(path.html.folder)).on('end', function(){
