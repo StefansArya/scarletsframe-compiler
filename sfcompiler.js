@@ -10,6 +10,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs = require('gulp-html-to-js');
 var htmlmin = require('gulp-htmlmin');
 var header = require('gulp-header');
+var footer = require('gulp-footer');
 var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
 
@@ -368,7 +369,10 @@ function prepareHTML(){
 						}
 					}
 
-					content = `window.templates['${obj.html.prefix+'/'+file}'] = '${content}';window.templates=window.templates`;
+					if(obj.html.prefix !== void 0)
+						file = obj.html.prefix+'/'+file;
+
+					content = `window.templates['${file}'] = '${content}';window.templates=window.templates`;
 					browserSync.sockets.emit('sf-hot-html', content);
 					browserSync.notify("HTML Reloaded");
 				}
@@ -399,10 +403,13 @@ function htmlTask(path){
 		var startTime = Date.now();
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
-		return gulp.src(path.html.combine)
-			.pipe(htmlmin({ collapseWhitespace: true }))
-			.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
+		var src = gulp.src(path.html.combine);
+		if(path.html.whitespace !== true)
+			src = src.pipe(htmlmin({ collapseWhitespace: true }));
+
+		return src.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
+			.pipe(footer('window.templates = window.templates'))
 			.pipe(gulp.dest(path.html.folder)).on('end', function(){
 				if(obj.onCompiled)
 					obj.onCompiled('HTML');
