@@ -23,6 +23,38 @@ var babel = null;
 var sass = null;
 
 var compiling = false;
+var firstCompile = {
+	js:0,
+	css:0,
+	html:0,
+};
+
+function progressCounter(newline){
+	if(firstCompile.js === 0 && firstCompile.css === 0 && firstCompile.html === 0)
+		return true;
+
+	process.stdout.write("Compiling: ");
+	var notFirst = false;
+
+	if(firstCompile.js !== 0){
+		process.stdout.write(firstCompile.js+" JS");
+		notFirst = true;
+	}
+
+	if(firstCompile.css !== 0){
+		if(notFirst) process.stdout.write(', ');
+		process.stdout.write(firstCompile.css+" CSS");
+		notFirst = true;
+	}
+
+	if(firstCompile.html !== 0){
+		if(notFirst) process.stdout.write(', ');
+		process.stdout.write(firstCompile.html+" HTML");
+	}
+
+	process.stdout.write(newline ? "\n" : "\r");
+	return false;
+}
 
 function init(only){
 	if(!only || only === 'js'){
@@ -39,6 +71,8 @@ function init(only){
 		prepareHTML();
 		console.log("[Prepared] .html handler");
 	}
+
+	progressCounter(true);
 }
 
 // === Javascript Recipe ===
@@ -102,6 +136,8 @@ function prepareJS(){
 }
 function jsTask(path){
 	return function(){
+		obj.onCompiled && firstCompile.js++;
+
 		var startTime = Date.now();
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 		var temp = gulp.src(path.js.combine);
@@ -131,7 +167,7 @@ function jsTask(path){
 			} : void 0))
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
-				if(obj.onCompiled)
+				if(obj.onCompiled && --firstCompile.js === 0)
 					obj.onCompiled('JavaScript');
 
 				if(browserSync && hotReload.js === void 0)
@@ -146,6 +182,8 @@ function jsTask(path){
 var jsModule = {};
 function jsTaskModule(path){
 	return function(){
+		obj.onCompiled && firstCompile.js++;
+
 		var startTime = Date.now();
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
@@ -199,7 +237,7 @@ function jsTaskModule(path){
 			} : void 0))
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
-				if(obj.onCompiled)
+				if(obj.onCompiled && --firstCompile.js === 0)
 					obj.onCompiled('JavaScript');
 
 				if(browserSync && hotReload.js === void 0)
@@ -252,6 +290,8 @@ function scssTask(path){
 		path.scss.folder += '/';
 
 	return function(){
+		obj.onCompiled && firstCompile.css++;
+
 		var startTime = Date.now();
 		removeOldMap(path.scss.folder, path.scss.file.replace('.css', ''), '.css');
 		var temp = gulp.src(path.scss.combine);
@@ -281,7 +321,7 @@ function scssTask(path){
 			} : void 0));
 
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
-			if(obj.onCompiled)
+			if(obj.onCompiled && --firstCompile.css === 0)
 				obj.onCompiled('SCSS');
 
 			if(browserSync && hotReload.scss !== false){
@@ -385,6 +425,8 @@ function htmlTask(path){
 		path.html.folder += '/';
 
 	return function(){
+		obj.onCompiled && firstCompile.html++;
+
 		var startTime = Date.now();
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
@@ -396,7 +438,7 @@ function htmlTask(path){
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
 			.pipe(footer('window.templates = window.templates'))
 			.pipe(gulp.dest(path.html.folder)).on('end', function(){
-				if(obj.onCompiled)
+				if(obj.onCompiled && --firstCompile.html === 0)
 					obj.onCompiled('HTML');
 			});
 	}
@@ -428,7 +470,13 @@ gulp.task('default', gulp.series('browser-sync'));
 function compileOnly(done, which){
 	compiling = true;
 	init(which);
-	done();
+
+	var interval = setInterval(function(){
+		if(progressCounter()){
+			clearInterval(interval);
+			done();
+		}
+	}, 500);
 }
 
 gulp.task('compile', (done)=>compileOnly(done)); // all
