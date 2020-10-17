@@ -11,14 +11,14 @@ var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs = require('gulp-html-to-js');
 var htmlmin = require('./gulp-htmlmin.js');
 var header = require('gulp-header');
-var footer = require('gulp-footer');
+// var footer = require('gulp-footer');
 var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
 
 // lazy init to improve startup performance
 var browserSync = false;
 var csso = null;
-var uglify = null;
+var terser = null;
 var autoprefixer = null;
 var babel = null;
 var sass = null;
@@ -149,12 +149,10 @@ function jsTask(path){
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
 
 		if(compiling){
-			if(!uglify) uglify = require('gulp-uglify-es').default;
+			if(!terser) terser = require('gulp-terser');
 			if(!babel) babel = require('gulp-babel');
 
-			temp = temp.pipe(babel()).on('error', swallowError).pipe(uglify({
-				mangle: {toplevel: true}
-			})).on('error', swallowError);
+			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
 		}
 
 		if(path.js.header)
@@ -220,11 +218,9 @@ function jsTaskModule(path){
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
 		if(!jm && compiling){
-			if(!uglify) uglify = require('gulp-uglify-es').default;
+			if(!terser) terser = require('gulp-terser');
 
-			temp = temp.pipe(uglify({
-				mangle: {toplevel: true}
-			})).on('error', swallowError);
+			temp = temp.pipe(terser()).on('error', swallowError);
 		}
 
 		if(path.js.header)
@@ -432,13 +428,24 @@ function htmlTask(path){
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
 		var src = gulp.src(path.html.combine);
+
+		if(includeSourceMap)
+			src = src.pipe(sourcemaps.init());
+
 		if(path.html.whitespace !== true)
 			src = src.pipe(htmlmin({ collapseWhitespace: true }));
 
-		return src.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
+		src = src.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
-			.pipe(footer('window.templates = window.templates'))
-			.pipe(gulp.dest(path.html.folder)).on('end', function(){
+
+		if(includeSourceMap)
+			src = src.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
+				mapFile: function(mapFilePath) {
+					return mapFilePath.replace('js.map', startTime+'.js.map');
+				}
+			} : void 0));
+
+		return src.pipe(gulp.dest(path.html.folder)).on('end', function(){
 				if(obj.onCompiled && --firstCompile.html === 0)
 					obj.onCompiled('HTML');
 			});
