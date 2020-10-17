@@ -8,7 +8,7 @@ var hotReload = obj.hotReload || {};
 var concat = require('gulp-concat');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs = require('gulp-html-to-js');
-var htmlmin = require('gulp-htmlmin');
+var htmlmin = require('./gulp-htmlmin.js');
 var header = require('gulp-header');
 var footer = require('gulp-footer');
 var fs = require('fs');
@@ -24,15 +24,21 @@ var sass = null;
 
 var compiling = false;
 
-function init(){
-	prepareJS();
-	console.log("[Prepared] .js handler");
+function init(only){
+	if(!only || only === 'js'){
+		prepareJS();
+		console.log("[Prepared] .js handler");
+	}
 
-	prepareSCSS();
-	console.log("[Prepared] .scss handler");
+	if(!only || only === 'css'){
+		prepareSCSS();
+		console.log("[Prepared] .scss handler");
+	}
 
-	prepareHTML();
-	console.log("[Prepared] .html handler");
+	if(!only || only === 'html'){
+		prepareHTML();
+		console.log("[Prepared] .html handler");
+	}
 }
 
 // === Javascript Recipe ===
@@ -109,21 +115,9 @@ function jsTask(path){
 			if(!uglify) uglify = require('gulp-uglify-es').default;
 			if(!babel) babel = require('gulp-babel');
 
-			temp = temp.pipe(babel({
-				babelrc: false,
-				presets: [
-			        [
-			          "@babel/preset-env", {
-			            targets: {
-			              ie: "11"
-			            },
-			            modules: false,
-			            loose: false,
-			            shippedProposals: true
-			          }
-			        ]
-				]
-			})).on('error', swallowError).pipe(uglify({mangle: {toplevel: true}})).on('error', swallowError);
+			temp = temp.pipe(babel()).on('error', swallowError).pipe(uglify({
+				mangle: {toplevel: true}
+			})).on('error', swallowError);
 		}
 
 		if(path.js.header)
@@ -189,18 +183,9 @@ function jsTaskModule(path){
 		if(!jm && compiling){
 			if(!uglify) uglify = require('gulp-uglify-es').default;
 
-			temp = temp.pipe(babel({
-				babelrc: false,
-				presets: [
-					["@babel/preset-env", {
-						targets: {
-							ie: "11"
-						},
-						modules: false,
-						loose: true
-					}]
-				]
-			})).on('error', swallowError).pipe(uglify({mangle: {toplevel: true}})).on('error', swallowError);
+			temp = temp.pipe(uglify({
+				mangle: {toplevel: true}
+			})).on('error', swallowError);
 		}
 
 		if(path.js.header)
@@ -440,11 +425,16 @@ gulp.task('default', gulp.series('browser-sync'));
 
 // === Compiling Recipe ===
 // To be executed on Continuous Delivery
-gulp.task('compile', function(done){
+function compileOnly(done, which){
 	compiling = true;
-	init();
+	init(which);
 	done();
-});
+}
+
+gulp.task('compile', (done)=>compileOnly(done)); // all
+gulp.task('compile-js', (done)=>compileOnly(done, 'js'));
+gulp.task('compile-css', (done)=>compileOnly(done, 'css'));
+gulp.task('compile-html', (done)=>compileOnly(done, 'html'));
 
 
 // === No need to edit below ===
@@ -503,7 +493,7 @@ function checkIncompatiblePath(name, obj){
 	if(obj.css !== void 0)
 		console.error("[Paths: "+name+"] Currently plain CSS haven't been supported, use SCSS instead");
 	if(obj.sass !== void 0)
-		console.error("[Paths: "+name+"] You can specify .sass inside of SCSS paths");
+		obj.scss = obj.sass;
 	if(obj.jsx !== void 0)
 		console.error("[Paths: "+name+"] JSX haven't been supported, use HTML instead");
 	if(obj.stylus !== void 0)
