@@ -3,6 +3,7 @@ module.exports = function(obj, gulp){
 var path = obj.path;
 var includeSourceMap = obj.includeSourceMap;
 var hotReload = obj.hotReload || {};
+var startupCompile = obj.startupCompile;
 
 // Load dependency
 var concat = require('gulp-concat');
@@ -127,7 +128,7 @@ function prepareJS(){
 				console.log("[First-Time] Compiling JavaScript for '"+name+"'..");
 				call();
 			}
-			else if(obj.startupCompile)
+			else if(startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -276,7 +277,7 @@ function prepareSCSS(){
 				console.log("[First-Time] Compiling SCSS for '"+name+"'..");
 				call();
 			}
-			else if(obj.startupCompile)
+			else if(startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -412,7 +413,7 @@ function prepareHTML(){
 				console.log("[First-Time] Compiling HTML for '"+name+"'..");
 				call();
 			}
-			else if(obj.startupCompile)
+			else if(startupCompile)
 				setTimeout(call, 500);
 		}
 
@@ -452,7 +453,7 @@ gulp.task('browser-sync', function(){
 
 	init();
 
-	if(obj.startupCompile === 'prod')
+	if(startupCompile === 'prod')
 		compiling = true;
 
 	console.log("[Preparing] BrowserSync as server");
