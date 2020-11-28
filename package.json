@@ -15,7 +15,7 @@
     "gulp-header": "^2.0.9",
     "gulp-html-to-js": "^0.0.7",
     "gulp-sass": "^4.0.2",
-    "gulp-sourcemaps": "^2.6.5",
+    "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^1.4.0",
     "html-minifier": "^4.0.0",
     "plugin-error": "^1.0.1",
@@ -24,6 +24,7 @@
     "cheerio":"^1.0.0-rc.3",
     "lodash":"^4.17.15",
     "string-similarity":"^4.0.1",
-    "node-sass": "^4.12.0"
+    "node-sass": "^5.0.0",
+    "source-map": "^0.7.3"
   }
 }
