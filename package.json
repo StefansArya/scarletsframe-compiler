@@ -14,17 +14,27 @@
     "gulp-csso": "^4.0.1",
     "gulp-header": "^2.0.9",
     "gulp-html-to-js": "^0.0.7",
-    "gulp-sass": "^4.0.2",
     "gulp-sourcemaps": "^3.0.0",
     "gulp-terser": "^1.4.0",
-    "html-minifier": "^4.0.0",
-    "plugin-error": "^1.0.1",
-    "through2": "^4.0.2",
 
     "cheerio":"^1.0.0-rc.3",
     "lodash":"^4.17.15",
     "string-similarity":"^4.0.1",
+    "chalk": "^2.3.0",
+
+    "plugin-error": "^1.0.1",
+    "through2": "^4.0.2",
+    "replace-ext": "^1.0.0",
+    "strip-ansi": "^4.0.0",
+    "vinyl-sourcemaps-apply": "^0.2.0",
+
+    "html-minifier": "^4.0.0",
     "node-sass": "^5.0.0",
-    "source-map": "^0.7.3"
-  }
+    "source-map": "^0.7.3",
+    "csso": "^4.2.0",
+    "terser": "^5.5.1",
+    "autoprefixer": "^10.0.4",
+    "postcss": "^8.1.10"
+  },
+  "browserslist":["> 1%"]
 }

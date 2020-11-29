@@ -293,10 +293,8 @@ function prepareSCSS(){
 	});
 }
 function scssTask(path){
-	if(!sass){
-		sass = require('gulp-sass');
-		sass.compiler = require('node-sass');
-	}
+	if(!sass)
+		sass = require('./gulp-sass.js');
 
 	var folderLastPath = path.scss.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
@@ -484,7 +482,8 @@ function prepareSF(){
 		var last = 0;
 
 		const instance = new SFCompiler({
-			htmlPrefix: obj.sf.prefix || ''
+			htmlPrefix: obj.sf.prefix || '',
+			minify: compiling
 		});
 
 		name = 'sf-'+name;
@@ -543,9 +542,9 @@ function sfTask(path, instance){
 		var startTime = Date.now();
 		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
 
-		function onFinish(changes){
-			console.log(123, path.sf.folder);
+		const options = compiling ? {autoprefixer:true, minify:true} : {};
 
+		function onFinish(changes){
 			function extraction(data){
 				const {sourceRoot,distName,which,code,map} = data;
 
@@ -557,10 +556,10 @@ function sfTask(path, instance){
 			}
 
 			for(const key in changes)
-				instance.extractAll(key, path.sf.folder, path.sf.file, extraction);
+				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
-		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish}));
+		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish, options}));
 	}
 }
 
