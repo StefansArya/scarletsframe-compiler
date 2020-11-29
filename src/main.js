@@ -81,6 +81,11 @@ module.exports = class SFCompiler{
 			const a = content[i].indexOf('\n');
 			let which = temp.slice(0, a).split('-').join('_');
 
+			if(which === 'comment'){
+				processed++;
+				continue;
+			}
+
 			let current = cached[which];
 			if(current === void 0)
 				current = cached[which] = {};
