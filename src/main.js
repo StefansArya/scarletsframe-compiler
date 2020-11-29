@@ -1,5 +1,8 @@
 var fs = require('fs');
-const {SourceMapGenerator} = require('source-map');
+const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
+
+// Lazy load
+var csso, postcss, autoprefixer, terser;
 
 // Contribution welcome :')
 const processor = {
@@ -129,7 +132,9 @@ module.exports = class SFCompiler{
 	}
 
 	// which: js, css
-	extractAll(which, sourceRoot, distName, callback){
+	async extractAll(which, sourceRoot, distName, callback, options){
+		if(options === void 0) options = {};
+
 		const that = this;
 		const {cache, processing} = this;
 		const relations = category[which];
@@ -141,7 +146,7 @@ module.exports = class SFCompiler{
 		}
 
 		var currentLines = 1;
-		var init = sourceInit[which];
+		var code = sourceInit[which];
 		var map = new SourceMapGenerator({
 			file: `${distName}.${which}`, sourceRoot
 		});
@@ -164,20 +169,78 @@ module.exports = class SFCompiler{
 
 				// console.log(t.generatedLine, currentLines);
 			    currentLines += current.lines;
-				init += current.content+'\n';
+				code += current.content+'\n';
 			}
 		}
 
-		init += which === 'js'
-			? `//# sourceMappingURL=${distName}.${which}.map`
-			: `/*# sourceMappingURL=${distName}.${which}.map */`;
+		const mappingURL = `${distName}.${which}`;
+		const sourceMapURL = which === 'js'
+			? `//# sourceMappingURL=${mappingURL}.map`
+			: `/*# sourceMappingURL=${mappingURL}.map */`;
+
+		code += sourceMapURL;
+
+		if(which === 'css' && options.autoprefixer){
+			if(autoprefixer === void 0){
+				postcss = require('postcss');
+				autoprefixer = require('autoprefixer');
+			}
+
+			const result = await postcss([autoprefixer]).process(code, {
+				from: mappingURL,
+				to: mappingURL
+			});
+
+			// const srcMapConsumer = await new SourceMapConsumer(map.toString());
+			// result.map.applySourceMap(srcMapConsumer);
+			// srcMapConsumer.destroy();
+
+			code = result.css.split('/*# sourceMappingURL')[0];
+			// map = result.map;
+			map = 'SourceMap unsupported for autoprefixer';
+		}
+
+		if(options.minify){
+			code = code.split('/*# sourceMappingURL')[0];
+
+			if(which === 'js'){
+				if(terser === void 0)
+					terser = require('terser');
+
+				const result = await terser.minify(code);
+				// console.log(result.map); throw 1; // SrcMapGen
+				code = result.code;
+
+				// const srcMapConsumer = await new SourceMapConsumer(result.map);
+				// map.applySourceMap(srcMapConsumer, 'lalala1');
+				// srcMapConsumer.destroy();
+			}
+			else{
+				// console.log(map.toString());
+				// const srcMapConsumer = await new SourceMapConsumer(map.toString());
+
+				if(csso === void 0)
+					csso = require('csso');
+
+				const result = await csso.minify(code);
+				// console.log(result.map); throw 1; // SrcMapGen
+				code = result.css;
+				// map = result.map;
+
+				// map.applySourceMap(srcMapConsumer, 'lalala2');
+				// srcMapConsumer.destroy();
+			}
+
+			// code += '\n'+sourceMapURL;
+			map = 'SourceMap unsupported for minify';
+		}
 
 		callback({
 			sourceRoot,
 			distName,
 			which,
 
-			code: init,
+			code,
 			map: map.toString()
 		});
 	}
