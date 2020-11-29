@@ -25,7 +25,7 @@ module.exports = function(path, content, callback, offset, options){
 
 		consumer.destroy();
 
-		const content = result.css.toString('utf8').slice(0, -30);
+		const content = result.css.toString('utf8').split('/*# sourceMappingURL')[0];
 		const lines = content.split('\n').length;
 		callback({content, lines, map});
 	});
