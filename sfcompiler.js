@@ -28,10 +28,11 @@ var firstCompile = {
 	js:0,
 	css:0,
 	html:0,
+	sf:0,
 };
 
 function progressCounter(newline){
-	if(firstCompile.js === 0 && firstCompile.css === 0 && firstCompile.html === 0)
+	if(firstCompile.js === 0 && firstCompile.css === 0 && firstCompile.html === 0 && firstCompile.sf === 0)
 		return true;
 
 	process.stdout.write("Compiling: ");
@@ -53,6 +54,11 @@ function progressCounter(newline){
 		process.stdout.write(firstCompile.html+" HTML");
 	}
 
+	if(firstCompile.sf !== 0){
+		if(notFirst) process.stdout.write(', ');
+		process.stdout.write(firstCompile.sf+" SF");
+	}
+
 	process.stdout.write(newline ? "\n" : "\r");
 	return false;
 }
@@ -71,6 +77,11 @@ function init(only){
 	if(!only || only === 'html'){
 		prepareHTML();
 		console.log("[Prepared] .html handler");
+	}
+
+	if(!only || only === 'sf'){
+		prepareSF();
+		console.log("[Prepared] .sf handler");
 	}
 
 	progressCounter(true);
@@ -227,7 +238,9 @@ function jsTaskModule(path){
 			temp = temp.pipe(header(path.js.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
+			temp = temp.pipe(sourcemaps.mapSources(function(sourcePath, file) {
+		        return path.js.folder + sourcePath;
+		    })).pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
 				mapFile: function(mapFilePath) {
 					return mapFilePath.replace('js.map', startTime+'.js.map');
 				}
@@ -265,7 +278,6 @@ function prepareSCSS(){
 				call();
 			});
 
-
 			var isExist = obj.scss;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
@@ -276,12 +288,15 @@ function prepareSCSS(){
 			else if(startupCompile)
 				setTimeout(call, 500);
 		}
-
 		else call();
 	});
 }
 function scssTask(path){
-	if(!sass) sass = require('gulp-sass');
+	if(!sass){
+		sass = require('gulp-sass');
+		sass.compiler = require('node-sass');
+	}
+
 	var folderLastPath = path.scss.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.scss.folder += '/';
@@ -332,6 +347,29 @@ function scssTask(path){
 	}
 }
 
+function extractHTMLPathPrefix(paths){
+	if(paths.constructor === String)
+		return [paths.split('*')[0].split('\\').join('/')];
+
+	var htmlPath = paths.slice(0);
+	for (var i = 0; i < htmlPath.length; i++)
+		htmlPath[i] = htmlPath[i].split('*')[0].split('\\').join('/');
+
+	return htmlPath;
+}
+
+function getPureHTMLPathPrefix(paths, currentPath){
+	var file = currentPath.split('\\').join('/');
+	for (var i = 0; i < paths.length; i++) {
+		if(file.indexOf(paths[i]) === 0){
+			file = file.replace(paths[i], '');
+			break;
+		}
+	}
+
+	return file;
+}
+
 // === HTML Recipe ===
 //
 function prepareHTML(){
@@ -360,7 +398,7 @@ function prepareHTML(){
 				// obj.combine = excludeSource(obj.combine, obj.static);
 			}
 
-			var htmlPath;
+			var htmlPath = extractHTMLPathPrefix(obj.html.combine);
 			gulp.watch(obj.html.combine).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
@@ -369,32 +407,16 @@ function prepareHTML(){
 				SFLang.scan(file, stats);
 
 				if(browserSync && hotReload.html === true){
-					if(htmlPath === void 0){
-						if(obj.html.combine.constructor === String)
-							htmlPath = [obj.html.combine.split('*')[0].split('\\').join('/')];
-						else{
-							htmlPath = obj.html.combine.slice(0);
-							for (var i = 0; i < htmlPath.length; i++) {
-								htmlPath[i] = htmlPath[i].split('*')[0].split('\\').join('/');
-							}
-						}
-					}
-
-					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
-					content = content.replace(/'/g, "\\'").replace(/\r/g, "").replace(/\n/g, '\\n');
-
 					file = file.split('\\').join('/');
-					for (var i = 0; i < htmlPath.length; i++) {
-						if(file.indexOf(htmlPath[i]) === 0){
-							file = file.replace(htmlPath[i], '');
-							break;
-						}
-					}
+					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+					content = content.replace(/\r/g, "").replace(/\n/g, '\\n');
+
+					file = getPureHTMLPathPrefix(htmlPath, file);
 
 					if(obj.html.prefix !== void 0)
 						file = obj.html.prefix+'/'+file;
 
-					content = `window.templates['${file}'] = '${content}';window.templates=window.templates`;
+					content = `window.templates['${file}'] = ${JSON.stringify(content)};window.templates=window.templates`;
 					browserSync.sockets.emit('sf-hot-html', content);
 					browserSync.notify("HTML Reloaded");
 				}
@@ -452,13 +474,103 @@ function htmlTask(path){
 	}
 }
 
+// === SF Recipe ===
+//
+const SFCompiler = require('./src/main.js');
+const SFInstantReload = ['js_global', 'html'];
+function prepareSF(){
+	watchPath('sf', function(name, obj){
+		var last = 0;
+
+		const instance = new SFCompiler({
+			htmlPrefix: obj.sf.prefix || ''
+		});
+
+		name = 'sf-'+name;
+		gulp.task(name, sfTask(obj));
+
+		var call = gulp.series(name);
+		if(compiling === false){
+			var htmlPath = extractHTMLPathPrefix(obj.sf.combine);
+			gulp.watch(obj.sf.combine).on('change', function(file, stats){
+				if(last === stats.ctimeMs)
+					return;
+
+				last = stats.ctimeMs;
+
+				browserSync = true// todo
+				if(browserSync && hotReload.sf === true){
+					file = file.split('\\').join('/');
+					try{
+						const path = getPureHTMLPathPrefix(htmlPath, file);
+						instance.loadSource(file.replace(path, ''), path, function(data, isData){
+							if(!isData) return;
+
+							if(data.content.slice(0, 8) === '__tmplt[')
+								data = "window.__tmplt=window.templates;"+data+';window.templates=window.templates;';
+
+							// browserSync.sockets.emit('sf-hot-js', data.content);
+							// browserSync.notify("JavaScript Reloaded");
+						}, SFInstantReload);
+					}catch(e){console.error(e)}
+				}
+
+				call();
+			});
+
+			var isExist = obj.sf;
+			isExist = fs.existsSync(isExist.folder+isExist.file);
+
+			if(!isExist){
+				console.log("[First-Time] Compiling '.sf' for '"+name+"'..");
+				call();
+			}
+			else if(startupCompile)
+				setTimeout(call, 500);
+		}
+
+		else call();
+	});
+}
+function sfTask(path){
+	var folderLastPath = path.sf.folder.slice(-1);
+	if(folderLastPath !== '/' && folderLastPath !== '\\')
+		path.sf.folder += '/';
+
+	return function(){
+		obj.onCompiled && firstCompile.sf++;
+
+		var startTime = Date.now();
+		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
+
+		var src = gulp.src(path.sf.combine);
+
+		if(includeSourceMap)
+			src = src.pipe(sourcemaps.init());
+
+		//
+
+		if(includeSourceMap)
+			src = src.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
+				mapFile: function(mapFilePath) {
+					return mapFilePath.replace('js.map', startTime+'.js.map');
+				}
+			} : void 0));
+
+		return src.pipe(gulp.dest(path.sf.folder)).on('end', function(){
+			if(obj.onCompiled && --firstCompile.sf === 0)
+				obj.onCompiled('SF');
+		});
+	}
+}
+
 // === Other ===
 //
 gulp.task('browser-sync', function(){
+	init();
+
 	if(!obj.browserSync)
 		return;
-
-	init();
 
 	if(startupCompile === 'prod')
 		compiling = true;
@@ -491,6 +603,7 @@ gulp.task('compile', (done)=>compileOnly(done)); // all
 gulp.task('compile-js', (done)=>compileOnly(done, 'js'));
 gulp.task('compile-css', (done)=>compileOnly(done, 'css'));
 gulp.task('compile-html', (done)=>compileOnly(done, 'html'));
+gulp.task('compile-sf', (done)=>compileOnly(done, 'sf'));
 
 
 // === No need to edit below ===
