@@ -16,7 +16,7 @@
 	------
 	Generated content must ready for being combined with another global script content
  */
-module.exports = function(path, content, callback, offset){
+module.exports = function(path, content, callback, offset, options){
 	const lines = content.split('\n').length;
 
 	var map = [];

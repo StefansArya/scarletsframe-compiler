@@ -1,7 +1,7 @@
 // Some information are available on js_global.js
 
 var sass, SourceMapConsumer;
-module.exports = function(path, content, callback, offset){
+module.exports = function(path, content, callback, offset, options){
 	// Must implement lazy load
 	if(sass === void 0){
 		sass = require('node-sass');
