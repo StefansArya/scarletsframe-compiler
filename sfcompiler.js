@@ -33,29 +33,29 @@ var firstCompile = {
 };
 
 function progressCounter(newline){
-	if(firstCompile.js === 0 && firstCompile.css === 0 && firstCompile.html === 0 && firstCompile.sf === 0)
+	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0)
 		return true;
 
 	process.stdout.write("Compiling: ");
 	var notFirst = false;
 
-	if(firstCompile.js !== 0){
+	if(firstCompile.js > 0){
 		process.stdout.write(firstCompile.js+" JS");
 		notFirst = true;
 	}
 
-	if(firstCompile.css !== 0){
+	if(firstCompile.css > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.css+" CSS");
 		notFirst = true;
 	}
 
-	if(firstCompile.html !== 0){
+	if(firstCompile.html > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.html+" HTML");
 	}
 
-	if(firstCompile.sf !== 0){
+	if(firstCompile.sf > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.sf+" SF");
 	}
