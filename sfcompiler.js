@@ -10,6 +10,7 @@ var concat = require('gulp-concat');
 var sourcemaps = require('gulp-sourcemaps');
 var htmlToJs = require('gulp-html-to-js');
 var htmlmin = require('./gulp-htmlmin.js');
+var sfExt = require('./gulp-sf-ext.js');
 var header = require('gulp-header');
 // var footer = require('gulp-footer');
 var fs = require('fs');
@@ -487,7 +488,7 @@ function prepareSF(){
 		});
 
 		name = 'sf-'+name;
-		gulp.task(name, sfTask(obj));
+		gulp.task(name, sfTask(obj, instance));
 
 		var call = gulp.series(name);
 		if(compiling === false){
@@ -498,7 +499,6 @@ function prepareSF(){
 
 				last = stats.ctimeMs;
 
-				browserSync = true// todo
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
@@ -509,8 +509,8 @@ function prepareSF(){
 							if(data.content.slice(0, 8) === '__tmplt[')
 								data = "window.__tmplt=window.templates;"+data+';window.templates=window.templates;';
 
-							// browserSync.sockets.emit('sf-hot-js', data.content);
-							// browserSync.notify("JavaScript Reloaded");
+							browserSync.sockets.emit('sf-hot-js', data.content);
+							browserSync.notify("JavaScript Reloaded");
 						}, SFInstantReload);
 					}catch(e){console.error(e)}
 				}
@@ -532,7 +532,7 @@ function prepareSF(){
 		else call();
 	});
 }
-function sfTask(path){
+function sfTask(path, instance){
 	var folderLastPath = path.sf.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.sf.folder += '/';
@@ -543,24 +543,24 @@ function sfTask(path){
 		var startTime = Date.now();
 		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
 
-		var src = gulp.src(path.sf.combine);
+		function onFinish(changes){
+			console.log(123, path.sf.folder);
 
-		if(includeSourceMap)
-			src = src.pipe(sourcemaps.init());
+			function extraction(data){
+				const {sourceRoot,distName,which,code,map} = data;
 
-		//
+				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
+				fs.writeFileSync(`${sourceRoot}${distName}.${which}.map`, map);
 
-		if(includeSourceMap)
-			src = src.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
-				mapFile: function(mapFilePath) {
-					return mapFilePath.replace('js.map', startTime+'.js.map');
-				}
-			} : void 0));
+				if(obj.onCompiled && --firstCompile.sf === 0)
+					obj.onCompiled('SF');
+			}
 
-		return src.pipe(gulp.dest(path.sf.folder)).on('end', function(){
-			if(obj.onCompiled && --firstCompile.sf === 0)
-				obj.onCompiled('SF');
-		});
+			for(const key in changes)
+				instance.extractAll(key, path.sf.folder, path.sf.file, extraction);
+		}
+
+		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish}));
 	}
 }
 
