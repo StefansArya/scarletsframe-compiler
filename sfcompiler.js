@@ -12,9 +12,9 @@ var htmlToJs = require('gulp-html-to-js');
 var htmlmin = require('./gulp-htmlmin.js');
 var sfExt = require('./gulp-sf-ext.js');
 var header = require('gulp-header');
-// var footer = require('gulp-footer');
 var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
+var chalk = require('chalk');
 
 // lazy init to improve startup performance
 var browserSync = false;
@@ -67,22 +67,22 @@ function progressCounter(newline){
 function init(only){
 	if(!only || only === 'js'){
 		prepareJS();
-		console.log("[Prepared] .js handler");
+		console.log(`[${chalk.gray('Prepared')}] .js handler`);
 	}
 
 	if(!only || only === 'css'){
 		prepareSCSS();
-		console.log("[Prepared] .scss handler");
+		console.log(`[${chalk.gray('Prepared')}] .scss handler`);
 	}
 
 	if(!only || only === 'html'){
 		prepareHTML();
-		console.log("[Prepared] .html handler");
+		console.log(`[${chalk.gray('Prepared')}] .html handler`);
 	}
 
 	if(!only || only === 'sf'){
 		prepareSF();
-		console.log("[Prepared] .sf handler");
+		console.log(`[${chalk.gray('Prepared')}] .sf handler`);
 	}
 
 	progressCounter(true);
@@ -137,7 +137,7 @@ function prepareJS(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log("[First-Time] Compiling JavaScript for '"+name+"'..");
+				console.log(`[${chalk.green('First-Time')}] Compiling JavaScript for '${chalk.blue(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -283,7 +283,7 @@ function prepareSCSS(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log("[First-Time] Compiling SCSS for '"+name+"'..");
+				console.log(`[${chalk.green('First-Time')}] Compiling SCSS for '${chalk.blue(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -427,7 +427,7 @@ function prepareHTML(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log("[First-Time] Compiling HTML for '"+name+"'..");
+				console.log(`[${chalk.green('First-Time')}] Compiling HTML for '${chalk.blue(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -521,7 +521,7 @@ function prepareSF(){
 			isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
 
 			if(!isExist){
-				console.log("[First-Time] Compiling '.sf' for '"+name+"'..");
+				console.log(`[${chalk.green('First-Time')}] Compiling '.sf' files for '${chalk.blue(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -574,7 +574,7 @@ gulp.task('browser-sync', function(){
 	if(startupCompile === 'prod')
 		compiling = true;
 
-	console.log("[Preparing] BrowserSync as server");
+	console.log(`[${chalk.gray('Preparing')}] BrowserSync as server`);
 
 	browserSync = require('browser-sync');
 	SFLang.watch();
