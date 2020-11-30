@@ -3,13 +3,13 @@
 const htmlmin = require('html-minifier');
 
 module.exports = function(path, content, callback, offset, options){
-	content = `__tmplt["${
-		(options.htmlPrefix + '/' || '') + path.fileName
-	}"]=${
-		JSON.stringify(
-			!options.minify
-				? content
-				: htmlmin.minify(content, { collapseWhitespace: true })
+	let prefix = options.htmlPrefix || '';
+	if(options.htmlPrefix) prefix += '/';
+
+	content = `__tmplt["${prefix + path.fileName}"]=${
+		JSON.stringify(!options.minify
+			? content
+			: htmlmin.minify(content, { collapseWhitespace: true })
 		).split('{{ ').join('{{').split(' }}').join('}}')
 	};`;
 
