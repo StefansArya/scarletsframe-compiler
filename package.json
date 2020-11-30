@@ -15,7 +15,7 @@
     "gulp-header": "^2.0.9",
     "gulp-html-to-js": "^0.0.7",
     "gulp-sourcemaps": "^3.0.0",
-    "gulp-terser": "^1.4.0",
+    "gulp-terser": "^2.0.0",
 
     "cheerio":"^1.0.0-rc.3",
     "lodash":"^4.17.15",
