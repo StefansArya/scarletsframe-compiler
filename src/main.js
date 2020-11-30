@@ -8,12 +8,13 @@ var csso, postcss, autoprefixer, terser;
 const processor = {
 	html: require('./processor/html.js'),
 	js_global: require('./processor/js_global.js'),
+	css_global: require('./processor/css_global.js'),
 	scss_global: require('./processor/scss_global.js'),
 };
 
 const category = {
 	js:['html', 'js_global'],
-	css:['scss_global']
+	css:['css_global', 'scss_global']
 };
 
 // Initial script before creating combined content

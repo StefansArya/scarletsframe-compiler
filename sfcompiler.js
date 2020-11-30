@@ -518,7 +518,7 @@ function prepareSF(){
 			});
 
 			var isExist = obj.sf;
-			isExist = fs.existsSync(isExist.folder+isExist.file);
+			isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
 
 			if(!isExist){
 				console.log("[First-Time] Compiling '.sf' for '"+name+"'..");
