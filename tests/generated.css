@@ -1,0 +1,170 @@
+player-pic {
+  display: block; }
+
+
+page-pagination ul {
+  display: table;
+  width: 100%;
+  list-style: none; }
+  page-pagination ul li {
+    float: left;
+    margin-right: 10px;
+    margin-top: 0; }
+    page-pagination ul li a {
+      display: block;
+      font-family: 'Verdana';
+      font-weight: 700;
+      font-size: 13px;
+      line-height: 30px;
+      width: 30px;
+      height: 30px;
+      color: #fff;
+      text-align: center;
+      text-decoration: none;
+      background: #e10052;
+      transition: all 0.2s linear; }
+      page-pagination ul li a.selected {
+        background: #464646;
+        color: #fff; }
+      page-pagination ul li a:hover {
+        background: #464646;
+        color: #fff; }
+
+page-pagination ul {
+  width: 100%;
+  padding: 0;
+  margin: inherit;
+  list-style: none;
+  border-top: inherit;
+  border-bottom: inherit; }
+  page-pagination ul:first-child {
+    padding-bottom: 5px;
+    height: 40px;
+    border-bottom: 1px solid #2c2c2c;
+    margin-top: -5px; }
+  page-pagination ul:last-child {
+    width: inherit;
+    margin: 10px auto 0; }
+  page-pagination ul li a {
+    cursor: pointer;
+    padding: 4px 8px;
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.329);
+    border-radius: 50px;
+    line-height: inherit;
+    width: inherit;
+    height: inherit;
+    background: #000; }
+    page-pagination ul li a:hover {
+      background: #fff3; }
+
+
+.notify-base {
+  font-weight: bold;
+  padding: 8px 15px 8px 14px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  min-width: 70px;
+  white-space: nowrap;
+  position: relative;
+  max-width: 100%;
+  min-width: 70%;
+  margin: 10px 10px 0 10px; }
+  .notify-base button {
+    outline: 0;
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    background: 0 0;
+    border: 0;
+    float: right;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 1px 0 #fff;
+    opacity: .2; }
+
+.notify-container {
+  width: 30%;
+  position: fixed;
+  z-index: 9999; }
+  .notify-container.right-top {
+    right: 0;
+    top: 0; }
+    .notify-container.right-top .notify-base {
+      float: right; }
+  .notify-container.left-top {
+    left: 0;
+    top: 0; }
+    .notify-container.left-top .notify-base {
+      float: left; }
+
+.notify-red {
+  color: #B94A48;
+  background-color: rgba(242, 222, 222, 0.97);
+  border-color: #EED3D7;
+  box-shadow: 0 0 7px 0px #EED3D7; }
+
+.notify-yellow {
+  color: #C09853;
+  background-color: rgba(252, 248, 227, 0.97);
+  border-color: #FBEED5;
+  box-shadow: 0 0 7px 0px #FBEED5; }
+
+.notify-blue {
+  color: #3A87AD;
+  background-color: rgba(217, 237, 247, 0.97);
+  border-color: #BCE8F1;
+  box-shadow: 0 0 7px 0px #BCE8F1; }
+
+.notify-green {
+  color: #468847;
+  background-color: rgba(223, 240, 216, 0.97);
+  border-color: #D6E9C6;
+  box-shadow: 0 0 7px 0px #D6E9C6; }
+
+
+player-h-slider {
+  width: 100%;
+  height: 20px;
+  display: block;
+  position: relative; }
+  player-h-slider .bar {
+    height: 10px;
+    width: 100%;
+    margin-top: 5px;
+    border-radius: 10px;
+    position: absolute;
+    background: #040404;
+    overflow: hidden; }
+    player-h-slider .bar .buffer-bar {
+      height: 100%;
+      width: 100%;
+      position: absolute; }
+      player-h-slider .bar .buffer-bar .buffer {
+        position: absolute;
+        transform-origin: left;
+        height: 100%;
+        width: 100%;
+        background: #0e0e0e;
+        transform: translateX(40px) scaleX(0.1); }
+    player-h-slider .bar .played-bar {
+      transform-origin: left;
+      height: 100%;
+      background: #868686;
+      transform: scaleX(0.1); }
+  player-h-slider .played-circle {
+    height: 20px;
+    width: 20px;
+    margin-left: -10px;
+    box-shadow: 0 0 12px black;
+    background: #ffad18;
+    position: absolute;
+    transform-origin: left;
+    border-radius: 20px;
+    transform: translateX(10px); }
+
+
+/*# sourceMappingURL=generated.css.map */

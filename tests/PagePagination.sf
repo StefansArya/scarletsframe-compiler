@@ -1,0 +1,147 @@
+## html
+<div>
+  <ul>
+    <li style="{{ index !== 0 ? '' : 'display: none'}}">
+      <a @click="changePage('first')">First</a>
+    </li>
+    <li style="{{ index > 0 ? '' : 'display: none'}}">
+      <a @click="changePage(index-1)">Previous</a>
+    </li>
+    <li style="float: right; {{ index !== total-1 ? '' : 'display: none'}}">
+      <a @click="changePage('last')">Last</a>
+    </li>
+    <li style="float: right; {{ index < total-1 ? '' : 'display: none'}}">
+      <a @click="changePage(index+1)">Next</a>
+    </li>
+  </ul>
+  <ul>
+    <li sf-each="x in showed">
+      <a @click="changePage(x)" class="{{ index === x ? 'selected' : '' }}">{{ x+1 }}</a>
+    </li>
+  </ul>
+</div>
+
+
+
+## js-global
+class PagePagination{
+  list = [];
+  showed = [];
+  index = 0;
+  total = 0;
+
+  events = {
+    change: NOOP
+  };
+
+  constructor(options){
+    Object.assign(this, options);
+  }
+
+  changeTotal(now){
+    if(this.list.length > now){
+      this.list.length = now;
+      this.showed = this.list;
+      return;
+    }
+
+    this.total = now;
+
+    var i = this.list.length;
+    this.list.length = now;
+
+    for (; i < now; i++)
+      this.list[i] = i;
+
+    this.showed = this.list;
+  }
+
+  changePage(index){
+    if(index === 'first')
+      index = 0;
+    else if(index === 'last')
+      index = this.total-1;
+
+    if(index >= this.total || index < 0)
+      return;
+
+    this.index = index;
+    this.events.change(index);
+  }
+}
+
+sf.component('page-pagination', {template:'./PagePagination.sf'});
+
+
+
+
+
+## scss-global
+page-pagination {
+  ul {
+    display: table;
+    width: 100%;
+    list-style: none;
+    li {
+      float: left;
+      margin-right: 10px;
+      margin-top: 0;
+      a {
+        display: block;
+        font-family: 'Verdana';
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 30px;
+        width: 30px;
+        height: 30px;
+        color: #fff;
+        text-align: center;
+        text-decoration: none;
+        background: #e10052;
+        transition: all 0.2s linear;
+        &.selected {
+          background: #464646;
+          color: #fff;
+        }
+        &:hover {
+          background: #464646;
+          color: #fff;
+        }
+      }
+    }
+  }
+  ul {
+    width: 100%;
+    padding: 0;
+    margin: inherit;
+    list-style: none;
+    border-top: inherit;
+    border-bottom: inherit;
+    &:first-child {
+      padding-bottom: 5px;
+      height: 40px;
+      border-bottom: 1px solid #2c2c2c;
+      margin-top: -5px;
+    }
+    &:last-child {
+      width: inherit;
+      margin: 10px auto 0;
+    }
+    li {
+      a {
+        cursor: pointer;
+        padding: 4px 8px;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.329);
+        border-radius: 50px;
+        line-height: inherit;
+        width: inherit;
+        height: inherit;
+        background: #000;
+        &:hover {
+          background: #fff3;
+        }
+      }
+    }
+  }
+}

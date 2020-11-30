@@ -1,0 +1,9 @@
+{
+  "name": "scarletsframe-compiler",
+  "author": "StefansArya",
+  "description": "A compiler for ScarletsFrame",
+  "main": "sfcompiler.js",
+  "version":"0.2.2",
+  "license": "MIT",
+  "browserslist":["> 1%"]
+}

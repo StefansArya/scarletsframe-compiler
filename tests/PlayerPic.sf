@@ -1,0 +1,50 @@
+.
+## html
+<img class="lazy-img" :src="{{ src }}" alt="">
+
+## js-global
+class PlayerPic{
+	// pictures = '';
+	src = '';
+	// crop = [];
+
+	m2v$src(now){
+		if(this.src === now)
+			return;
+
+		this.$el('img').removeClass('lazy-img-loaded');
+	}
+
+	constructor(options){
+		if(options === void 0)
+			return;
+
+		this.pictures = options.pictures;
+		this.crop = JSON.parse(`[${options.crop}]`);
+	}
+
+	init(){
+		var imgEl = this.$el('img')[0];
+		if(this.src === this.pictures)
+			return;
+
+		this.src = this.pictures || '';
+
+		var that = this;
+		imgEl.onload = imgEl.onerror = function(){
+			Crop(imgEl, that.crop);
+			$(imgEl).addClass('lazy-img-loaded');
+		}
+	}
+
+	reinit(){
+		this.init();
+	}
+}
+
+sf.component('player-pic', {template:'./PlayerPic.sf'});
+
+## scss-global
+player-pic{
+	display: block;
+}

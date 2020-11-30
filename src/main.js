@@ -158,6 +158,7 @@ module.exports = class SFCompiler{
 
 			for(let i=0; i<relations.length; i++){
 				const current = content[relations[i]];
+				if(current === void 0) continue;
 
 				for (let a = 0; a < current.map.length; a++) {
 					const t = current.map[a];

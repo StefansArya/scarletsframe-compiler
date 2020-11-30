@@ -1,0 +1,139 @@
+How to use:
+All you need is put sf-frame on any of your HTML file
+'path' attribute is absolute path from /src/
+
+Don't forget about the last " /> " for closing sf-frame element
+```html
+<body>
+	<sf-frame path="/frame/SmallNotif.sf" />
+</body>
+```
+```js
+SmallNotif.add('message', 'color', /* delay in ms*/);
+```
+
+
+
+## html
+<div class="bar" @pointerdown="drag(event)">
+  <div class="buffer-bar">
+    <div sf-each="v in buffered" class="buffer"
+      style="transform: translateX({{ v.x }}px) scaleX({{ v.scale }})"
+    ></div>
+  </div>
+  <div class="played-bar" style="transform: scaleX({{ playTime }})"></div>
+</div>
+<div class="played-circle" @pointerdown="drag()" style="transform: translateX({{ circlePos }}px)"></div>
+
+
+
+
+## scss-global
+player-h-slider{
+    width: 100%;
+    height: 20px;
+    display: block;
+    position: relative;
+
+    .bar{
+	    height: 10px;
+	    width: 100%;
+	    margin-top: 5px;
+	    border-radius: 10px;
+	    position: absolute;
+	    background: #040404;
+	    overflow: hidden;
+
+	    .buffer-bar{
+		    height: 100%;
+		    width: 100%;
+		    position: absolute;
+
+		    .buffer{
+			    position: absolute;
+			    transform-origin: left;
+			    height: 100%;
+			    width: 100%;
+			    background: #0e0e0e;
+			    transform: translateX(40px) scaleX(0.1);
+			}
+		}
+
+		.played-bar{
+		    transform-origin: left;
+		    height: 100%;
+		    background: #868686;
+		    transform: scaleX(0.1);
+		}
+	}
+
+	.played-circle{
+	    height: 20px;
+	    width: 20px;
+	    margin-left: -10px;
+	    box-shadow: 0 0 12px black;
+	    background: #ffad18;
+	    position: absolute;
+	    transform-origin: left;
+	    border-radius: 20px;
+	    transform: translateX(10px);
+	}
+}
+
+
+
+
+
+## js-global
+class PlayerHSlider{
+	buffered = [];
+	playTime = 0;
+	circlePos = 0;
+	events = {};
+
+	barRect = null;
+	isDragging = false;
+
+	constructor(options){
+		Object.assign(this, options);
+	}
+
+	init(){
+		this.barRect = this.$el('.bar')[0].getBoundingClientRect();
+	}
+
+	seek(percent){
+		this.playTime = percent;
+
+		if(this.isDragging || !this.barRect)
+			return;
+
+		this.circlePos = percent * this.barRect.width;
+	}
+
+	drag(ev){
+		var bar = this.$el('.bar')[0].getBoundingClientRect();
+
+		var that = this;
+		function dragging(ev){
+			if(ev.clientX < bar.left || ev.clientX > bar.right)
+				return;
+
+			var pos = ev.clientX - bar.left;
+			that.circlePos = pos;
+		}
+
+		that.isDragging = true;
+
+		ev && dragging(ev);
+
+		$(document).on('pointermove', dragging).once('pointerup', function(){
+			that.playTime = that.circlePos / bar.width;
+			that.isDragging = false;
+			that.events.changed && that.events.changed();
+			$(document).off('pointermove', dragging);
+		});
+	}
+}
+
+sf.component('player-h-slider', {template: './HSlider.sf'});
