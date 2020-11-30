@@ -1,0 +1,156 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "ScarletsFrame",
+	"patterns": [
+		{"include": "#js-fence"},
+		{"include": "#css-fence"},
+		{"include": "#scss-fence"},
+		{"include": "#html-fence"},
+		{"include": "#comment-fence"},
+		{"include": "#md-js-fence"},
+		{"include": "#md-html-fence"},
+		{"include": "#md-css-fence"}
+	],
+	"repository": {
+		"js-fence": {
+			"patterns": [{
+				"begin": "^## (?:ts|js)(?:-global|$)",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"end": "^(?=## )",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"name": "meta.embedded.block.js",
+				"contentName": "source.js",
+				"patterns": [{"include": "source.js"}]
+			}]
+		},
+		"css-fence": {
+			"patterns": [{
+				"begin": "^## (?:css)(?:-global|$)",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"end": "^(?=## )",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"name": "meta.embedded.block.css",
+				"contentName": "source.css",
+				"patterns": [{"include": "source.css"}]
+			}]
+		},
+		"scss-fence": {
+			"patterns": [{
+				"begin": "^## (?:scss|sass)(?:-global|$)",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"end": "^(?=## )",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"name": "meta.embedded.block.scss",
+				"contentName": "source.sass",
+				"patterns": [{"include": "source.css.scss"}]
+			}]
+		},
+		"html-fence": {
+			"patterns": [{
+				"begin": "^## html",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"end": "^(?=## )",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.block.scarletsframe"}
+				},
+				"name": "meta.embedded.block.html",
+				"contentName": "text.html.basic",
+				"patterns": [{"include": "text.html.basic"}, {
+					"begin": "\\{\\{|\\]\\}",
+					"comment": "ScarletsFrame template's JavaScript region",
+					"beginCaptures": {
+						"0": {"name": "punctuation.definition.mustache.scarletsframe"}
+					},
+					"end": "\\}\\}|(?<=\\{\\[)",
+					"endCaptures": {
+						"0": {"name": "punctuation.definition.mustache.scarletsframe"}
+					},
+					"name": "meta.embedded.block.js",
+					"patterns":[{"include": "source.js"}]
+				}, {
+					"begin": "(@|:)([a-z\\._A-Z0-9]+)(?![\\w:-])",
+					"comment": "ScarletsFrame attributes, HTML5 event handlers",
+					"beginCaptures": {
+			            "0": {"name": "entity.other.attribute-name.html"}
+					},
+					"end": "(?=\\s*+[^=\\s])",
+					"endCaptures": {
+						"0": {"name": "punctuation.definition.string.begin.html"}
+					},
+					"name": "meta.embedded.line.js",
+					"patterns":[{"include": "source.js"}]
+				}]
+			}]
+		},
+		"comment-fence": {
+			"patterns": [{
+				"begin": "## comment",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"end": "^(?=## )",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"name": "comment.block.scarletsframe"
+			}]
+		},
+		"md-js-fence": {
+			"patterns": [{
+				"begin": "```js",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"end": "```",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"name": "meta.embedded.block.js",
+				"patterns":[{"include": "source.js"}]
+			}]
+		},
+		"md-html-fence": {
+			"patterns": [{
+				"begin": "```html",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"end": "```",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"name": "meta.embedded.block.html",
+				"patterns":[{"include": "text.html.basic"}]
+			}]
+		},
+		"md-css-fence": {
+			"patterns": [{
+				"begin": "```css",
+				"beginCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"end": "```",
+				"endCaptures": {
+					"0": {"name": "punctuation.definition.comment.scarletsframe"}
+				},
+				"name": "meta.embedded.block.css",
+				"patterns":[{"include": "source.css"}]
+			}]
+		}
+	},
+	"scopeName": "source.sf"
+}

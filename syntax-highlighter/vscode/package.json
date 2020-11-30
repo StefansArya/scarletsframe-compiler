@@ -1,0 +1,29 @@
+{
+    "name": "scarletsframe",
+    "displayName": "ScarletsFrame",
+    "publisher": "ScarletsFiction",
+    "repository": {
+        "url": "https://github.com/StefansArya/scarletsframe-compiler/syntax-highlighter"
+    },
+    "description": "An extension for working with ScarletsFrame's framework",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.51.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "scarletsframe",
+            "aliases": ["ScarletsFrame", "scarletsframe"],
+            "extensions": [".sf"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "scarletsframe",
+            "scopeName": "source.sf",
+            "path": "./syntaxes/scarletsframe.tmLanguage.json"
+        }]
+    }
+}

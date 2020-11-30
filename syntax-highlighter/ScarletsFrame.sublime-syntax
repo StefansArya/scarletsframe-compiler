@@ -1,0 +1,82 @@
+%YAML 1.2
+---
+file_extensions:
+  - sf
+scope: source.scarletsframe
+
+contexts:
+  main:
+    - match: '## comment(?:|s)'
+      scope: punctuation.definition.block.scarletsframe
+      push:
+        - meta_scope: comment.line.double-slash.scarletsframe
+        - match: '^(?=##)'
+          pop: true
+
+    - match: '^```js'
+      scope: comment.line.double-slash.scarletsframe
+      push: scope:source.js
+      with_prototype:
+        - match: '```'
+          scope: comment.line.double-slash.scarletsframe
+          pop: true
+
+    - match: '^```html'
+      scope: comment.line.double-slash.scarletsframe
+      push: scope:text.html.basic
+      with_prototype:
+        - match: '```'
+          scope: comment.line.double-slash.scarletsframe
+          pop: true
+
+    - match: '^```css'
+      scope: comment.line.double-slash.scarletsframe
+      push: scope:source.css
+      with_prototype:
+        - match: '```'
+          scope: comment.line.double-slash.scarletsframe
+          pop: true
+
+    - match: '^## (?:ts|js)(?:-global|$)'
+      scope: punctuation.definition.block.scarletsframe
+      push: scope:source.js
+      with_prototype:
+        - match: '^(?=## )'
+          pop: true
+
+    - match: '^## (?:scss|sass)(?:-global|$)'
+      scope: punctuation.definition.block.scarletsframe
+      push: scope:source.scss
+      with_prototype:
+        - match: '^(?=## )'
+          pop: true
+
+    - match: '^## (?:css)(?:-global|$)'
+      scope: punctuation.definition.block.scarletsframe
+      push: scope:source.css
+      with_prototype:
+        - match: '^(?=## )'
+          pop: true
+
+    - match: '^## html'
+      scope: punctuation.definition.block.scarletsframe
+      push: scope:text.html.basic
+      with_prototype:
+        - match: '^(?=## )'
+          pop: true
+        - match: \{\{|\]\}
+          escape: \}\}|\{\[
+          scope: punctuation.definition.mustache.scarletsframe
+          escape_captures:
+            0: punctuation.definition.mustache.scarletsframe
+          embed: scope:source.js
+        - match: (@|:)([a-z\._A-Z0-9]+)(=)(")
+          escape: '"'
+          captures:
+            1: entity.other.attribute-name.event.html
+            2: entity.other.attribute-name.event.html
+            3: punctuation.separator.key-value.html
+            4: punctuation.definition.string.begin.html
+          escape_captures:
+            0: punctuation.definition.string.begin.html
+          embed: scope:source.js
