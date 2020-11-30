@@ -36,8 +36,16 @@ module.exports = class SFCompiler{
 			this.processing[key] = new Set();
 	}
 
-	// Open the source, split it
 	sourceCallbackWait = 0; // for throttling
+	sourceFinish(callback, singleCompile){
+		if(--this.sourceCallbackWait === 0 && !singleCompile){
+			const temp = this.sourceChanges;
+			this.sourceChanges = {};
+			callback(temp);
+		}
+	}
+
+	// Open the source, split it
 	sourceChanges = {};
 	loadSource(root, path, callback, singleCompile){
 		const that = this;
@@ -49,13 +57,7 @@ module.exports = class SFCompiler{
 		let raw = fs.readFileSync(root+path, 'utf8');
 
 		if(cached !== void 0 && cached.raw !== void 0 && cached.raw === raw){
-			if(--that.sourceCallbackWait === 0){
-				const temp = that.sourceChanges;
-				that.sourceChanges = {};
-
-				if(!singleCompile) callback(temp);
-			}
-
+			that.sourceFinish(callback, singleCompile);
 			return;
 		}
 
@@ -86,7 +88,8 @@ module.exports = class SFCompiler{
 			let which = temp.slice(0, a).split('-').join('_');
 
 			if(which === 'comment'){
-				processed++;
+				if(++processed === content.length)
+					that.sourceFinish(callback, singleCompile);
 				continue;
 			}
 
@@ -94,8 +97,11 @@ module.exports = class SFCompiler{
 			if(current === void 0)
 				current = cached[which] = {};
 
-			if(cached[which].rawContent === temp)
+			if(cached[which].rawContent === temp){
+				if(++processed === content.length)
+					that.sourceFinish(callback, singleCompile);
 				continue;
+			}
 
 			current.rawContent = temp;
 
@@ -119,13 +125,8 @@ module.exports = class SFCompiler{
 				current.path = path;
 				proc.delete(path);
 
-				if(++processed === content.length){
-					if(--that.sourceCallbackWait === 0){
-						const temp = that.sourceChanges;
-						that.sourceChanges = {};
-						callback(temp);
-					}
-				}
+				if(++processed === content.length)
+					that.sourceFinish(callback, singleCompile);
 			}, lines, that.options);
 
 			lines += temp.split('\n').length;

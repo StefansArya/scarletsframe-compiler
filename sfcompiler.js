@@ -137,7 +137,7 @@ function prepareJS(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log(`[${chalk.green('First-Time')}] Compiling JavaScript for '${chalk.blue(name)}'...`);
+				console.log(`[First-Time] Compiling JavaScript for '${chalk.cyan(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -283,7 +283,7 @@ function prepareSCSS(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log(`[${chalk.green('First-Time')}] Compiling SCSS for '${chalk.blue(name)}'...`);
+				console.log(`[First-Time] Compiling SCSS for '${chalk.cyan(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -427,7 +427,7 @@ function prepareHTML(){
 			isExist = fs.existsSync(isExist.folder+isExist.file);
 
 			if(!isExist){
-				console.log(`[${chalk.green('First-Time')}] Compiling HTML for '${chalk.blue(name)}'...`);
+				console.log(`[First-Time] Compiling HTML for '${chalk.cyan(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
@@ -521,7 +521,7 @@ function prepareSF(){
 			isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
 
 			if(!isExist){
-				console.log(`[${chalk.green('First-Time')}] Compiling '.sf' files for '${chalk.blue(name)}'...`);
+				console.log(`[First-Time] Compiling '.sf' files for '${chalk.cyan(name)}'...`);
 				call();
 			}
 			else if(startupCompile)
