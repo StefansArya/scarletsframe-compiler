@@ -3,7 +3,7 @@
   "author": "StefansArya",
   "description": "A compiler for ScarletsFrame",
   "main": "sfcompiler.js",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "license": "MIT",
   "dependencies": {
     "autoprefixer": "^10.0.4",
@@ -25,11 +25,11 @@
     "node-sass": "^5.0.0",
     "plugin-error": "^1.0.1",
     "postcss": "^8.1.10",
-    "replace-ext": "^1.0.0",
+    "replace-ext": "^2.0.0",
     "source-map": "^0.7.3",
     "source-map-merger": "^0.2.0",
     "string-similarity": "^4.0.1",
-    "strip-ansi": "^4.0.0",
+    "strip-ansi": "^6.0.0",
     "terser": "^5.5.1",
     "through2": "^4.0.2",
     "vinyl-sourcemaps-apply": "^0.2.0"
