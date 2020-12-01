@@ -704,6 +704,9 @@ function watchPath(which, watch){
 	}
 
 	if(default_){
+		if(default_[which] === void 0)
+			return;
+
 		checkIncompatiblePath('default', default_);
 
 		// Separate file name and folder path
