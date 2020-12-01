@@ -1,8 +1,9 @@
 var fs = require('fs');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
+// var mergeMap = require('merge-source-map');
 
 // Lazy load
-var csso, postcss, autoprefixer, terser;
+var csso, postcss, autoprefixer, terser, babel;
 
 // Contribution welcome :')
 const processor = {
@@ -62,7 +63,9 @@ module.exports = class SFCompiler{
 		}
 
 		if(cached === void 0)
-			cached = cache[path] = { raw };
+			cached = cache[path] = {};
+
+		cached.raw = raw;
 
 		let content = raw.split('\n## ');
 
@@ -84,7 +87,7 @@ module.exports = class SFCompiler{
 		let processed = 0;
 		for (let i = 0; i < content.length; i++) {
 			const temp = content[i];
-			const a = content[i].indexOf('\n');
+			const a = temp.indexOf('\n');
 			let which = temp.slice(0, a).split('-').join('_');
 
 			if(which === 'comment'){
@@ -97,7 +100,7 @@ module.exports = class SFCompiler{
 			if(current === void 0)
 				current = cached[which] = {};
 
-			if(cached[which].rawContent === temp){
+			if(current.rawContent === temp){
 				if(++processed === content.length)
 					that.sourceFinish(callback, singleCompile);
 				continue;
@@ -190,52 +193,43 @@ module.exports = class SFCompiler{
 			}
 
 			const result = await postcss([autoprefixer]).process(code, {
-				from: mappingURL,
-				to: mappingURL
+				from: void 0,
+				// to: mappingURL
 			});
 
-			// const srcMapConsumer = await new SourceMapConsumer(map.toString());
-			// result.map.applySourceMap(srcMapConsumer);
-			// srcMapConsumer.destroy();
-
-			code = result.css.split('/*# sourceMappingURL')[0];
-			// map = result.map;
-			map = 'SourceMap unsupported for autoprefixer';
+			// map = mergeMap(JSON.parse(map.toString()), JSON.parse(result.map.toString()));
+			// code = result.css.split('/*# sourceMappingURL')[0] + sourceMapURL;
 		}
 
 		if(options.minify){
-			code = code.split('/*# sourceMappingURL')[0];
-
 			if(which === 'js'){
-				if(terser === void 0)
+				if(terser === void 0){
 					terser = require('terser');
+					babel = require('@babel/core');
+				}
 
-				const result = await terser.minify(code);
-				// console.log(result.map); throw 1; // SrcMapGen
+				const babeled = await babel.transform(code, {
+					inputSourceMap: map,
+					sourceMaps: true
+				});
+
+				const result = await terser.minify(babeled.code);
 				code = result.code;
+				map = JSON.stringify(babeled.map);
 
-				// const srcMapConsumer = await new SourceMapConsumer(result.map);
-				// map.applySourceMap(srcMapConsumer, 'lalala1');
-				// srcMapConsumer.destroy();
+				// map = mergeMap(babeled.map, JSON.parse(result.map));
 			}
 			else{
-				// console.log(map.toString());
-				// const srcMapConsumer = await new SourceMapConsumer(map.toString());
-
 				if(csso === void 0)
 					csso = require('csso');
 
 				const result = await csso.minify(code);
-				// console.log(result.map); throw 1; // SrcMapGen
 				code = result.css;
-				// map = result.map;
-
-				// map.applySourceMap(srcMapConsumer, 'lalala2');
-				// srcMapConsumer.destroy();
+				// map = mergeMap(JSON.parse(map.toString()), JSON.parse(result.map));
 			}
 
-			// code += '\n'+sourceMapURL;
-			map = 'SourceMap unsupported for minify';
+			// map = JSON.stringify(map);
+			code = code.split('/*# sourceMappingURL')[0] + sourceMapURL;
 		}
 
 		callback({
