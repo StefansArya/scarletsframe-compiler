@@ -336,8 +336,10 @@ function scssTask(path){
 				obj.onCompiled('SCSS');
 
 			if(browserSync && hotReload.scss !== false){
-				browserSync.reload(path.scss.folder+path.scss.file);
-				browserSync.notify("SCSS Reloaded");
+				setTimeout(function(){
+					browserSync.reload(path.scss.folder+path.scss.file);
+					browserSync.notify("SCSS Reloaded");
+				}, 100);
 			}
 		});
 
@@ -408,7 +410,7 @@ function prepareHTML(){
 				if(browserSync && hotReload.html === true){
 					file = file.split('\\').join('/');
 					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
-					content = content.replace(/\r/g, "").replace(/\n/g, '\\n');
+					content = content.replace(/\r/g, "");
 
 					file = getPureHTMLPathPrefix(htmlPath, file);
 
@@ -416,6 +418,7 @@ function prepareHTML(){
 						file = obj.html.prefix+'/'+file;
 
 					content = `window.templates['${file}'] = ${JSON.stringify(content)};window.templates=window.templates`;
+
 					browserSync.sockets.emit('sf-hot-html', content);
 					browserSync.notify("HTML Reloaded");
 				}
@@ -497,7 +500,6 @@ function prepareSF(){
 					return;
 
 				last = stats.ctimeMs;
-
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
@@ -505,10 +507,11 @@ function prepareSF(){
 						instance.loadSource(file.replace(path, ''), path, function(data, isData){
 							if(!isData) return;
 
-							if(data.content.slice(0, 8) === '__tmplt[')
+							data = data.content;
+							if(data.slice(0, 8) === '__tmplt[')
 								data = "window.__tmplt=window.templates;"+data+';window.templates=window.templates;';
 
-							browserSync.sockets.emit('sf-hot-js', data.content);
+							browserSync.sockets.emit('sf-hot-js', data);
 							browserSync.notify("JavaScript Reloaded");
 						}, SFInstantReload);
 					}catch(e){console.error(e)}
@@ -550,6 +553,13 @@ function sfTask(path, instance){
 
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}.map`, map);
+
+				if(browserSync && hotReload.scss !== false && which === 'css'){
+					setTimeout(function(){
+						browserSync.reload(`${sourceRoot}${distName}.${which}`);
+						browserSync.notify("CSS Reloaded");
+					}, 50);
+				}
 
 				if(obj.onCompiled && --firstCompile.sf === 0)
 					obj.onCompiled('SF');
