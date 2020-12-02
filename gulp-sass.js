@@ -1,4 +1,9 @@
-// Copied from: https://github.com/dlmanning/gulp-sass
+/* Temporary copy from: https://github.com/dlmanning/gulp-sass
+  I may remove this file after the original repo was updated
+
+  The MIT License (MIT)
+  Copyright (c) 2013 David Manning
+*/
 
 const chalk = require('chalk');
 const PluginError = require('plugin-error');

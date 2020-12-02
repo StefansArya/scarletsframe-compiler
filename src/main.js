@@ -37,13 +37,32 @@ module.exports = class SFCompiler{
 			this.processing[key] = new Set();
 	}
 
+	firstInit = true;
+	firstInitThrottle = 0;
+	changesCallback(callback){
+		if(this.firstInit !== false){
+			callback = this.firstInit;
+			this.firstInit = false;
+		}
+
+		const temp = this.sourceChanges;
+		this.sourceChanges = {};
+		callback(temp);
+	}
+
 	sourceCallbackWait = 0; // for throttling
 	sourceFinish(callback, singleCompile){
-		if(--this.sourceCallbackWait === 0 && !singleCompile){
-			const temp = this.sourceChanges;
-			this.sourceChanges = {};
-			callback(temp);
+		if(--this.sourceCallbackWait !== 0) return;
+
+		if(this.firstInit !== false){
+			clearTimeout(this.firstInitThrottle);
+			this.firstInitThrottle = setTimeout(this.changesCallback.bind(this), 500);
+			this.firstInit = callback || this.firstInit;
+			return;
 		}
+
+		if(!singleCompile)
+			this.changesCallback(callback);
 	}
 
 	// Open the source, split it
