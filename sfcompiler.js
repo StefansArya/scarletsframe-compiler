@@ -550,6 +550,7 @@ function sfTask(path, instance){
 
 		function onFinish(changes){
 			function extraction(data){
+				if(data === false) return;
 				const {sourceRoot,distName,which,code,map} = data;
 
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
