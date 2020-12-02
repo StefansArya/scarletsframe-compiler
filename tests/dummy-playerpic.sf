@@ -1,0 +1,18 @@
+## html
+<img class="lazy-img" :src="{{ src }}" alt="">
+
+## js-global
+class PlayerPic{
+	src = '';
+}
+
+sf.component('player-pic', {template:'./PlayerPic.sf'});
+
+## comment
+test
+
+## scss-global
+player-pic{
+	display: block;
+	transform: none;
+}

@@ -1,0 +1,130 @@
+How to use:
+All you need is put sf-frame on any of your HTML file
+'path' attribute is absolute path from /src/
+
+Just testing this comments
+```html
+<body>
+	<sf-frame path="/frame/SmallNotif.sf" />
+</body>
+```
+```js
+SmallNotif.add('message', 'color', /* delay in ms*/);
+```
+
+
+
+
+## html
+<sf-m name="small.notif">
+  <div class="notify-container right-top">
+    <div sf-each="x in list" class="notify-base notify-{{ x.color }}">
+      <span>{{ x.message }}</span>
+      <button @click="close(x)" class="close">×</button>
+    </div>
+  </div>
+</sf-m>
+
+
+
+## js-global
+var SmallNotif = sf.model('small.notif', function(My){
+  const $ = sf.dom;
+
+	My.list = [];
+	My.on$list = {
+		create(el){
+			$(el).animateKey('fadeInUp');
+		},
+		remove(el, remove){
+			$(el).animateKey('fadeOutUp', remove);
+			setTimeout(remove, 500); // To make sure it's removed
+			return true;
+		}
+	};
+
+	My.add = function(message, color, delay){
+		var item = {message, color:color || 'yellow'};
+		My.list.push(item);
+
+		setTimeout(()=> {
+			My.list.splice(My.list.indexOf(item), 1);
+		}, delay || 5000);
+	}
+
+	My.close = function(item){
+		My.list.splice(My.list.indexOf(item), 1);
+	}
+});
+
+
+
+
+
+## scss-global
+.notify-base{
+  font-weight: bold;
+  padding: 8px 15px 8px 14px;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  background-color: #fff;
+  border: 1px solid #000;
+  border-radius: 4px;
+  min-width: 70px;
+  white-space: nowrap;
+  position: relative;
+  max-width: 100%;
+  min-width: 70%;
+  margin: 10px 10px 0 10px;
+
+  button{
+    outline: 0;
+    -webkit-appearance: none;
+    padding: 0;
+    cursor: pointer;
+    background: 0 0;
+    border: 0;
+    float: right;
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1;
+    text-shadow: 0 1px 0 #fff;
+    opacity: .2;
+  }
+}
+
+.notify-container{
+  width: 30%;
+  position: fixed;
+  z-index: 9999;
+
+  &.right-top{
+    right: 0;
+    top: 0;
+
+    .notify-base{
+      float: right;
+    }
+  }
+  &.left-top{
+    left: 0;
+    top: 0;
+
+    .notify-base{
+      float: left;
+    }
+  }
+}
+
+@mixin notify-color($name, $txt, $bg, $border){
+  .notify-#{$name}{
+    color: #{$txt};
+    background-color: #{$bg};
+    border-color: #{$border};
+    box-shadow: 0 0 7px 0px #{$border};
+  }
+}
+
+@include notify-color('red', #B94A48, rgba(242, 222, 222, 0.97), #EED3D7);
+@include notify-color('yellow', #C09853, rgba(252, 248, 227, 0.97), #FBEED5);
+@include notify-color('blue', #3A87AD, rgba(217, 237, 247, 0.97), #BCE8F1);
+@include notify-color('green', #468847, rgba(223, 240, 216, 0.97), #D6E9C6);

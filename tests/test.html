@@ -1,0 +1,17 @@
+<html lang="en">
+<head>
+	<script src="http://localhost:2000/dist/scarletsframe.js"></script>
+	<script src="./generated.js"></script>
+	<link rel="stylesheet" type="text/css" href="./generated.css">
+</head>
+<body>
+	<sf-m name="small.notif">
+	  <div class="notify-container right-top">
+	    <div sf-each="x in list" class="notify-base notify-{{ x.color }}">
+	      <span>{{ x.message }}</span>
+	      <button @click="close(x)" class="close">×</button>
+	    </div>
+	  </div>
+	</sf-m>
+</body>
+</html>
