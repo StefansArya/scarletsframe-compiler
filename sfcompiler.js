@@ -479,6 +479,7 @@ function htmlTask(path){
 // === SF Recipe ===
 //
 const SFCompiler = require('./src/main.js');
+const SFCompilerHelper = require('./src/helper.js');
 const SFInstantReload = ['js_global', 'html'];
 function prepareSF(){
 	watchPath('sf', function(name, obj){
@@ -507,7 +508,7 @@ function prepareSF(){
 						instance.loadSource(file.replace(path, ''), path, function(data, isData){
 							if(!isData) return;
 
-							data = data.content;
+							data = SFCompilerHelper.jsGetScopeVar(data.content, path);
 							if(data.slice(0, 8) === '__tmplt[')
 								data = "window.__tmplt=window.templates;"+data+';window.templates=window.templates;';
 
