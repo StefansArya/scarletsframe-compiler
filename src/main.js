@@ -100,9 +100,13 @@ module.exports = class SFCompiler{
 			if(current === void 0)
 				current = cached[which] = {};
 
+			const lastOffset = temp.split('\n').length;
+
 			if(current.rawContent === temp){
 				if(++processed === content.length)
 					that.sourceFinish(callback, singleCompile);
+
+				lines += lastOffset;
 				continue;
 			}
 
@@ -132,7 +136,7 @@ module.exports = class SFCompiler{
 					that.sourceFinish(callback, singleCompile);
 			}, lines, that.options);
 
-			lines += temp.split('\n').length;
+			lines += lastOffset;
 		}
 	}
 
