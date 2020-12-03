@@ -16,6 +16,9 @@
 	------
 	Generated content must ready for being combined with another global script content
  */
+
+const getGlobalClass = /(?:^|^ )class (\w+)/gm;
+
 module.exports = function(path, content, callback, offset, options){
 	const lines = content.split('\n').length;
 
@@ -28,6 +31,17 @@ module.exports = function(path, content, callback, offset, options){
 			generatedColumn: 0,
 			source: path.fileName
 		});
+	}
+
+	// For hot reloading class in the global scope
+	if(!options.minify){
+		let addition = '';
+		content.replace(getGlobalClass, (full, name)=>{
+			addition += `if(!window.${name})window.${name}=${name};`;
+		});
+
+		if(addition.length !== 0)
+			content += `;${addition}`
 	}
 
 	callback({content, map, lines});

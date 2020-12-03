@@ -1,4 +1,4 @@
-const regex = /(?:^|^ )(class|function|var|const|let) (\w+)/gm;
+const regex = /(?:^|^ )(class|function|var) (\w+)/gm;
 
 module.exports = {
 	jsGetScopeVar(content, path){
