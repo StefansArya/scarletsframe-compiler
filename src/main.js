@@ -176,7 +176,7 @@ module.exports = class SFCompiler{
 		var currentLines = 1;
 		var code = sourceInit[which];
 		var map = new SourceMapGenerator({
-			file: `${distName}.${which}`, sourceRoot
+			file: `${distName}.${which}`
 		});
 
 		for(var path in cache){
