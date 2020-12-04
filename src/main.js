@@ -1,4 +1,5 @@
 var fs = require('fs');
+const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 // var mergeMap = require('merge-source-map');
 
@@ -132,7 +133,7 @@ module.exports = class SFCompiler{
 			current.rawContent = temp;
 
 			var func = processor[which];
-			if(!func) throw new Error(`'${which}' is not ready yet`);
+			if(!func) throw `${chalk.red('[Error]')} When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js-global, and scss-global'.`;
 
 			if(category.css.includes(which))
 				that.sourceChanges.css = true;
