@@ -554,7 +554,9 @@ function sfTask(path, instance){
 				const {sourceRoot,distName,which,code,map} = data;
 
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
-				fs.writeFileSync(`${sourceRoot}${distName}.${which}.map`, map);
+
+				if(includeSourceMap)
+					fs.writeFileSync(`${sourceRoot}${distName}.${which}.map`, map);
 
 				if(browserSync && hotReload.scss !== false && which === 'css'){
 					setTimeout(function(){
