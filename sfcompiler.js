@@ -708,6 +708,7 @@ function watchPath(which, watch){
 	}
 
 	if(default_){
+		path.default = default_;
 		if(default_[which] === void 0)
 			return;
 
