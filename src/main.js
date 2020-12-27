@@ -108,7 +108,7 @@ module.exports = class SFCompiler{
 		for (let i = 0; i < content.length; i++) {
 			const temp = content[i];
 			const a = temp.indexOf('\n');
-			let which = temp.slice(0, a).split('-').join('_');
+			let which = temp.slice(0, a).split('-').join('_').replace('\r', '');
 
 			if(which === 'comment'){
 				if(++processed === content.length)
