@@ -33,6 +33,13 @@ module.exports = function(path, content, callback, offset, options){
 		});
 	}
 
+	if(content.includes('#this.path')){
+		let prefix = options.htmlPrefix || '';
+		if(options.htmlPrefix) prefix += '/';
+
+		content = content.split('#this.path').join(`"${prefix + path.fileName}"`);
+	}
+
 	// For hot reloading class in the global scope
 	if(!options.minify){
 		let addition = '';

@@ -21,7 +21,19 @@ const category = {
 
 // Initial script before creating combined content
 const sourceInit = {
-	js:'if(!window.templates)window.templates={};const __tmplt=window.templates;',
+	js:`if(!window.templates) window.templates={}; const __tmplt=window.templates;
+const _sf_internal={body_map:{},
+	_replace(path,html){
+		if(this.body_map[path])this.body_map[path].remove();
+		return this.body_map[path] = sf.dom(html);
+	},
+	append(path,html){
+		sf.dom(document.body).append(this._replace.apply(this, arguments));
+	},
+	prepend(path,html){
+		sf.dom(document.body).prepend(this._replace.apply(this, arguments));
+	},
+};`,
 	css:''
 };
 
@@ -110,6 +122,12 @@ module.exports = class SFCompiler{
 			const a = temp.indexOf('\n');
 			let which = temp.slice(0, a).split('-').join('_').replace('\r', '');
 
+			var extra = false;
+			if(which.includes('.')){
+				[which, extra] = which.split('.');
+				that.options.extra = extra;
+			}
+
 			if(which === 'comment'){
 				if(++processed === content.length)
 					that.sourceFinish(callback, singleCompile);
@@ -155,6 +173,9 @@ module.exports = class SFCompiler{
 				if(++processed === content.length)
 					that.sourceFinish(callback, singleCompile);
 			}, lines, that.options);
+
+			if(extra !== false)
+				delete that.options.extra;
 
 			lines += lastOffset;
 		}
