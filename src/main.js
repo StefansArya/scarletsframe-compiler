@@ -19,6 +19,16 @@ const category = {
 	css:['css_global', 'scss_global']
 };
 
+function isInCategory(cats, fence){
+	for(var i=0; i < cats.length; i++){
+		if(fence.indexOf(cats[i]) !== 0)
+			continue;
+
+		return true;
+	}
+	return false;
+}
+
 // Initial script before creating combined content
 const sourceInit = {
 	js:`if(!window.templates) window.templates={}; const __tmplt=window.templates;
@@ -33,9 +43,11 @@ const _sf_internal={body_map:{},
 	prepend(path,html){
 		sf.dom(document.body).prepend(this._replace.apply(this, arguments));
 	},
-};`,
-	css:''
+};`, // 13 lines
+	css:'' // 0 lines
 };
+
+const sourceInitLines = [13, 0];
 
 
 // ========================================
@@ -116,27 +128,29 @@ module.exports = class SFCompiler{
 			directory:root
 		};
 
+		let hasHTML = -1;
+
 		let processed = 0;
 		for (let i = 0; i < content.length; i++) {
 			const temp = content[i];
 			const a = temp.indexOf('\n');
 			let which = temp.slice(0, a).split('-').join('_').replace('\r', '');
 
-			var extra = false;
-			if(which.includes('.')){
-				[which, extra] = which.split('.');
-				that.options.extra = extra;
-			}
-
-			if(which === 'comment'){
+			if(which.indexOf('comment') === 0){
 				if(++processed === content.length)
 					that.sourceFinish(callback, singleCompile);
 				continue;
 			}
 
-			let current = cached[which];
+			var actual = which, extra = false;
+			if(which.includes('.')){
+				[which, extra] = which.split('.');
+				that.options.extra = extra;
+			}
+
+			let current = cached[actual];
 			if(current === void 0)
-				current = cached[which] = {};
+				current = cached[actual] = {};
 
 			const lastOffset = temp.split('\n').length;
 
@@ -148,14 +162,12 @@ module.exports = class SFCompiler{
 				continue;
 			}
 
-			current.rawContent = temp;
-
 			var func = processor[which];
 			if(!func) throw `${chalk.red('[Error]')} When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js-global, and scss-global'.`;
 
-			if(category.css.includes(which))
+			if(isInCategory(category.css, which))
 				that.sourceChanges.css = true;
-			else if(category.js.includes(which))
+			else if(isInCategory(category.js, which))
 				that.sourceChanges.js = true;
 
 			const proc = processing[which];
@@ -195,20 +207,21 @@ module.exports = class SFCompiler{
 				return callback(false);
 		}
 
-		var currentLines = 1;
+		var currentLines = sourceInitLines[which]+1;
 		var code = sourceInit[which];
 		var map = new SourceMapGenerator({
 			file: `${distName}.${which}`
 		});
 
-		for(var path in cache){
+		for(const path in cache){
 			const content = cache[path];
 			map.setSourceContent(path, content.raw);
 
-			for(let i=0; i<relations.length; i++){
-				const current = content[relations[i]];
-				if(current === void 0) continue;
+			for(const fenceName in content){
+				if(fenceName === 'raw' || isInCategory(relations, fenceName) === false)
+					continue;
 
+				const current = content[fenceName];
 				for (let a = 0; a < current.map.length; a++) {
 					const t = current.map[a];
 					map.addMapping({
