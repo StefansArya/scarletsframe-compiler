@@ -43,12 +43,9 @@ const _sf_internal={body_map:{},
 	prepend(path,html){
 		sf.dom(document.body).prepend(this._replace.apply(this, arguments));
 	},
-};`, // 13 lines
-	css:'' // 0 lines
+};`.split('\n').join('').split('\t').join(''),
+	css:''
 };
-
-const sourceInitLines = [13, 0];
-
 
 // ========================================
 
@@ -207,8 +204,9 @@ module.exports = class SFCompiler{
 				return callback(false);
 		}
 
-		var currentLines = sourceInitLines[which]+1;
 		var code = sourceInit[which];
+		var currentLines = 1;
+
 		var map = new SourceMapGenerator({
 			file: `${distName}.${which}`
 		});
