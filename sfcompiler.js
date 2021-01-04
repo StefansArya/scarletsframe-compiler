@@ -153,7 +153,7 @@ function jsTask(path){
 
 		var startTime = Date.now();
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
-		var temp = gulp.src(path.js.combine);
+		var temp = gulp.src(path.js.combine, path.js.opt);
 
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.init());
@@ -199,7 +199,7 @@ function jsTaskModule(path){
 		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
 		var temp, jm;
-		temp = gulp.src(path.js.combine || path.js.module.from);
+		temp = gulp.src(path.js.combine || path.js.module.from, path.js.opt);
 
 		if(path.js.module){
 			jm = jsModule;
@@ -305,7 +305,7 @@ function scssTask(path){
 
 		var startTime = Date.now();
 		removeOldMap(path.scss.folder, path.scss.file.replace('.css', ''), '.css');
-		var temp = gulp.src(path.scss.combine);
+		var temp = gulp.src(path.scss.combine, path.scss.opt);
 
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.init());
@@ -348,27 +348,10 @@ function scssTask(path){
 	}
 }
 
-function extractHTMLPathPrefix(paths){
-	if(paths.constructor === String)
-		return [paths.split('*')[0].split('\\').join('/')];
-
-	var htmlPath = paths.slice(0);
-	for (var i = 0; i < htmlPath.length; i++)
-		htmlPath[i] = htmlPath[i].split('*')[0].split('\\').join('/');
-
-	return htmlPath;
-}
-
-function getPureHTMLPathPrefix(paths, currentPath){
-	var file = currentPath.split('\\').join('/');
-	for (var i = 0; i < paths.length; i++) {
-		if(file.indexOf(paths[i]) === 0){
-			file = file.replace(paths[i], '');
-			break;
-		}
-	}
-
-	return file;
+function getRelativePath(basePath, file){
+	file = file.split(basePath);
+	file.shift();
+	return file.join(basePath);
 }
 
 // === HTML Recipe ===
@@ -399,7 +382,7 @@ function prepareHTML(){
 				// obj.combine = excludeSource(obj.combine, obj.static);
 			}
 
-			var htmlPath = extractHTMLPathPrefix(obj.html.combine);
+			var basePath = obj.html.opt.base+'/';
 			gulp.watch(obj.html.combine).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
@@ -412,7 +395,7 @@ function prepareHTML(){
 					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 					content = content.replace(/\r/g, "");
 
-					file = getPureHTMLPathPrefix(htmlPath, file);
+					file = getRelativePath(basePath, file);
 
 					if(obj.html.prefix !== void 0)
 						file = obj.html.prefix+'/'+file;
@@ -451,7 +434,7 @@ function htmlTask(path){
 		var startTime = Date.now();
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
-		var src = gulp.src(path.html.combine);
+		var src = gulp.src(path.html.combine, path.html.opt);
 
 		if(includeSourceMap)
 			src = src.pipe(sourcemaps.init());
@@ -495,8 +478,8 @@ function prepareSF(){
 
 		var call = gulp.series(name);
 		if(compiling === false){
-			var htmlPath = extractHTMLPathPrefix(obj.sf.combine);
-			gulp.watch(obj.sf.combine).on('change', function(file, stats){
+			var basePath = obj.sf.opt.base+'/';
+			gulp.watch(obj.sf.combine, obj.sf.opt).on('change', function(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
@@ -504,7 +487,7 @@ function prepareSF(){
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
-						const path = getPureHTMLPathPrefix(htmlPath, file);
+						const path = getRelativePath(basePath, file);
 						instance.loadSource(file.replace(path, ''), path, function(data, isData){
 							if(!isData) return;
 
@@ -514,7 +497,7 @@ function prepareSF(){
 
 							browserSync.sockets.emit('sf-hot-js', data);
 							browserSync.notify("JavaScript Reloaded");
-						}, SFInstantReload);
+						}, SFInstantReload, obj.sf);
 					}catch(e){console.error(e)}
 				}
 
@@ -547,6 +530,7 @@ function sfTask(path, instance){
 		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
 
 		const options = compiling ? {autoprefixer:true, minify:true} : {};
+		options._opt = path.sf;
 
 		function onFinish(changes){
 			function extraction(data){
@@ -573,13 +557,15 @@ function sfTask(path, instance){
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
-		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish, options}));
+		return gulp.src(path.sf.combine, path.sf.opt).pipe(sfExt({instance, onFinish, options}));
 	}
 }
 
 // === Other ===
 //
+var collectSourcePath = false;
 gulp.task('browser-sync', function(){
+	collectSourcePath = {};
 	init();
 
 	if(!obj.browserSync)
@@ -592,7 +578,9 @@ gulp.task('browser-sync', function(){
 
 	browserSync = require('browser-sync');
 	SFLang.watch();
-	browserSync = browserSync.init(null, obj.browserSync);
+	browserSync = browserSync.init(obj.browserSync, function(){
+		require('./src/browser-cmd.js')(browserSync.sockets, collectSourcePath, obj.editor);
+	});
 });
 
 // To be executed on Development computer
@@ -684,26 +672,51 @@ function checkIncompatiblePath(name, obj){
 		console.error("[Paths: "+name+"] 'Less' compiler haven't been supported yet, use SCSS instead..");
 }
 
+function watchPath_(key, temp, which){
+	// Check if default was exist
+	// if(temp && temp[which])
+	// 	temp[which].combine = excludeSource(temp[which].combine, temp[which].combine);
+
+	const ref = temp[which];
+	checkIncompatiblePath(key, temp);
+
+	ref.opt = {
+		base:(ref.combine.constructor === String ? ref.combine : ref.combine[0]).split('/')[0]
+	};
+
+	const strip = (temp.stripURL || '$%');
+	if(which !== 'sf')
+		collectSourcePath[ref.file.replace(strip, '')] = {
+			distPath:ref.file,
+			base:ref.opt.base
+		};
+	else{
+		collectSourcePath[ref.file.replace(strip, '')+'.js'] = {
+			distPath:ref.file+'.js',
+			base:ref.opt.base
+		};
+		collectSourcePath[ref.file.replace(strip, '')+'.css'] = {
+			distPath:ref.file+'.css',
+			base:ref.opt.base
+		};
+	}
+
+	// Separate file name and folder path
+	ref.file = splitFolderPath(ref.file);
+	ref.folder = ref.file.pop();
+	ref.file = ref.file[0];
+}
+
 function watchPath(which, watch){
 	var default_ = path.default;
 	delete path.default;
 
 	for(var key in path){
 		var temp = path[key];
-		checkIncompatiblePath('key', temp);
-
-		// Check if default was exist
-		// if(default_ && default_[which])
-		// 	default_[which].combine = excludeSource(default_[which].combine, temp[which].combine);
-
 		if(temp[which] === void 0)
 			continue;
 
-		// Separate file name and folder path
-		temp[which].file = splitFolderPath(temp[which].file);
-		temp[which].folder = temp[which].file.pop();
-		temp[which].file = temp[which].file[0];
-
+		watchPath_(key, temp, which);
 		watch(key, temp);
 	}
 
@@ -712,13 +725,7 @@ function watchPath(which, watch){
 		if(default_[which] === void 0)
 			return;
 
-		checkIncompatiblePath('default', default_);
-
-		// Separate file name and folder path
-		default_[which].file = splitFolderPath(default_[which].file);
-		default_[which].folder = default_[which].file.pop();
-		default_[which].file = default_[which].file[0];
-
+		watchPath_('default', default_, which);
 		path.default = default_;
 		watch('default', default_);
 	}

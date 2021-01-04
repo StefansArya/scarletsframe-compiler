@@ -2,6 +2,7 @@ var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 // var mergeMap = require('merge-source-map');
+var debugging = false;
 
 // Lazy load
 var csso, postcss, autoprefixer, terser, babel;
@@ -89,7 +90,7 @@ module.exports = class SFCompiler{
 
 	// Open the source, split it
 	sourceChanges = {};
-	loadSource(root, path, callback, singleCompile){
+	loadSource(root, path, callback, singleCompile, _opt){
 		const that = this;
 		const {cache, processing} = this;
 
@@ -122,10 +123,12 @@ module.exports = class SFCompiler{
 
 		let splitPath = {
 			fileName:path,
+			base:_opt.opt.base,
 			directory:root
 		};
 
 		let hasHTML = -1;
+		if(debugging) console.log("Path:", path);
 
 		let processed = 0;
 		for (let i = 0; i < content.length; i++) {
@@ -170,6 +173,7 @@ module.exports = class SFCompiler{
 			const proc = processing[which];
 			proc.add(path);
 
+			if(debugging) console.log("Which: ", which, lines);
 			func(splitPath, temp.slice(a+1).trim(), function(data){
 				Object.assign(current, data); // map, content, lines
 

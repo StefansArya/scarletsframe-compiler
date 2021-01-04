@@ -21,6 +21,7 @@ module.exports = function(path, content, callback, offset, options){
 		consumer.eachMapping((m)=> {
 			map.push(m);
 			m.originalLine += offset;
+			m.source = path.fileName;
 		});
 
 		consumer.destroy();

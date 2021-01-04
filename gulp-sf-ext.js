@@ -5,7 +5,9 @@ module.exports = function(options) {
     options.instance.loadSource(
       file.base.split('\\').join('/')+'/',
       file.relative.split('\\').join('/'),
-      options.onFinish
+      options.onFinish,
+      void 0,
+      options.options._opt
     );
 
     this.push(file);
