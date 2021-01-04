@@ -28,8 +28,10 @@ function openEditor(data, source, propName, rawText){
 
 		if(index === -1) return console.error("Failed to retrieve the index");
 
-		if(propName !== void 0)
-			endIndex = temp.search(RegExp(`[. \\t]${propName}(?:\\s+|)=|${propName}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){`, 's'), index);
+		if(propName !== void 0){
+			var propName_ = propName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			endIndex = temp.search(RegExp(`[. \\t](?:${propName_}(?:\\s+|)=|${propName_}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){)`, 's'), index);
+		}
 		else if(rawText !== void 0)
 			endIndex = temp.indexOf(rawText, index);
 
