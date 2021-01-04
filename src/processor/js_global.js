@@ -44,7 +44,7 @@ module.exports = function(path, content, callback, offset, options){
 	if(!options.minify){
 		let addition = '';
 		content.replace(getGlobalClass, (full, name)=>{
-			addition += `if(!window.${name})window.${name}=${name};${name}.prototype.sf$filePath="${path.base+'/'+path.fileName}";`;
+			addition += `if(!window.${name})window.${name}=${name};Object.defineProperty(${name}.prototype, "sf$filePath", {configurable:true, value:"${path.base+'/'+path.fileName}"});`;
 		});
 
 		if(addition.length !== 0)

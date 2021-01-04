@@ -40,6 +40,7 @@ for(const key in tempStatic){
 	Object.defineProperty(glob, key, tempStatic[key]);
 }
 ${word}=glob;
+if(glob.sf$refresh)glob.sf$refresh.forEach(v=>v());
 }`;
 			}
 		}
