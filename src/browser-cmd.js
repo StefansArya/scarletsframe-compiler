@@ -26,7 +26,7 @@ function openEditor(data, source, propName){
 			index = temp.indexOf('\n', index);
 
 		if(index === -1) return console.error("Failed to retrieve the index");
-		var endIndex = temp.search(RegExp(`\\.${propName}(?:\\s+|)=|${propName}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){`), index);
+		var endIndex = temp.search(RegExp(`[. \\t]${propName}(?:\\s+|)=|${propName}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){`, 's'), index);
 
 		line = temp.slice(index, endIndex).split('\n').length;
 		lines = `:${line || 1}:1`;
