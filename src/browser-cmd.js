@@ -14,22 +14,26 @@ module.exports = function(sockets, that, editor_){
 	});
 }
 
-function openEditor(data, source, propName){
+function openEditor(data, source, propName, rawText){
 	var fullPath = `${process.cwd()}/${source.base}/${data.source}`;
 	var lines = `:${data.line}:${data.column}`;
 
-	if(propName !== void 0){
-		var temp = fs.readFileSync(fullPath, 'utf8');
-		var line = data.line;
-		var index = 0;
+	var temp, line, index, endIndex;
+	if(propName !== void 0 || rawText !== void 0){
+		temp = fs.readFileSync(fullPath, 'utf8');
+		line = data.line;
+		index = 0;
 		while(line-- > 0)
 			index = temp.indexOf('\n', index);
 
 		if(index === -1) return console.error("Failed to retrieve the index");
-		var endIndex = temp.search(RegExp(`[. \\t]${propName}(?:\\s+|)=|${propName}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){`, 's'), index);
 
-		line = temp.slice(index, endIndex).split('\n').length;
-		lines = `:${line || 1}:1`;
+		if(propName !== void 0)
+			endIndex = temp.search(RegExp(`[. \\t]${propName}(?:\\s+|)=|${propName}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){`, 's'), index);
+		else if(rawText !== void 0)
+			endIndex = temp.indexOf(rawText, index);
+
+		lines = `:${temp.slice(index, endIndex).split('\n').length || 1}:1`;
 	}
 
 	if(editor === 'sublime')
@@ -42,7 +46,9 @@ function openEditor(data, source, propName){
 }
 
 function openSource(data){
-	var [temp, propName] = data;
+	var [temp, propName, rawText] = data;
+	if(propName === null) propName = void 0;
+	if(rawText === null) rawText = void 0;
 
 	temp = temp.split('?');
 	if(temp.length !== 1){
@@ -54,7 +60,7 @@ function openSource(data){
 
 	temp = temp[0];
 	if(temp.slice(0, 1) === '>'){
-		openEditor({source:temp.slice(1), line:1, column:1}, {base:''});
+		openEditor({source:temp.slice(1), line:1, column:1}, {base:''}, propName, rawText);
 		return;
 	}
 
@@ -68,7 +74,7 @@ function openSource(data){
 	if(!source) return console.error(`The path was not recognized '${path}'`);
 
 	readSourceMap(source.distPath+'.map', target, function(data){
-		openEditor(data, source, propName);
+		openEditor(data, source, propName, rawText);
 	});
 }
 
