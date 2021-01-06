@@ -163,7 +163,7 @@ module.exports = class SFCompiler{
 			}
 
 			var func = processor[which];
-			if(!func) throw `${chalk.red('[Error]')} When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js-global, and scss-global'.`;
+			if(!func) throw `[${chalk.red('Error')}] When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js-global, and scss-global'.`;
 
 			if(isInCategory(category.css, which))
 				that.sourceChanges.css = true;

@@ -1,5 +1,6 @@
 const {SourceMapConsumer} = require('source-map');
 const fs = require('fs');
+var chalk = require('chalk');
 
 const {spawn} = require('child_process');
 
@@ -7,7 +8,7 @@ var collectSourcePath;
 var editor = void 0;
 module.exports = function(sockets, that, editor_){
 	collectSourcePath = that;
-	editor = editor_;
+	editor = editor_.toLowerCase();
 
 	sockets.on('connection', function(socket){
 		socket.on('sf-open-source', openSource);
@@ -38,10 +39,16 @@ function openEditor(data, source, propName, rawText){
 		lines = `:${temp.slice(index, endIndex).split('\n').length || 1}:1`;
 	}
 
-	if(editor === 'sublime')
-		spawn('subl', [fullPath+lines], {shell: true});
-	else if(editor === 'vsc')
-		spawn('code', ['-g', fullPath+lines], {shell: true});
+	if(editor === 'sublime'){
+		spawn('subl', [fullPath+lines], {shell: true}).once('exit', function(code){
+			if(code !== 0) console.error(`[${chalk.red('Error')}] You have selected 'sublime' as your default editor, please make sure 'subl' is available in the. Please follow the instruction to register it https://www.sublimetext.com/docs/command_line.html`);
+		});
+	}
+	else if(editor === 'vsc'){
+		spawn('code', ['-g', fullPath+lines], {shell: true}).once('exit', function(code){
+			if(code !== 0) console.error(`[${chalk.red('Error')}] You have selected 'vsc' as your default editor, please make sure 'code' is available in the PATH environment. Please follow the instruction to register it https://code.visualstudio.com/docs/editor/command-line#_code-is-not-recognized-as-an-internal-or-external-command`);
+		});
+	}
 	else if(!editor)
 		console.error("No default editor was selected");
 	else console.error(editor, "is not a supported editor");

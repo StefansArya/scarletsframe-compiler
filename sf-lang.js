@@ -4,6 +4,7 @@ var fs = require('fs');
 var cheerio = require('cheerio');
 var strSimilar = require('string-similarity');
 var writtingFile = new Set();
+var chalk = require('chalk');
 
 var langs = {};
 var langsSave = {};
@@ -26,11 +27,11 @@ function initLang(){
 
 	var saveDir = config.saveDir;
 	if(config.defaultLang.indexOf('-') !== -1)
-		console.error("[sf-lang] Please use _ instead of - when specifying default language");
+		console.error(`[${chalk.gray('sf-lang')}] Please use _ instead of - when specifying default language`);
 
 	for (var i = 0; i < config.translate.length; i++) {
 		if(config.translate[i].indexOf('-') !== -1)
-			console.error("[sf-lang] Please use _ instead of - when specifying language: "+config.translate[i]);
+			console.error(`[${chalk.gray('sf-lang')}] Please use _ instead of - when specifying language: ${config.translate[i]}`);
 	}
 
 	try{
@@ -117,7 +118,7 @@ function newChanges(file, stats){
 	if(writtingFile.has(file))
 		return;
 
-	// console.log("[sf-lang] scanning "+file);
+	// console.log(`[${chalk.gray('sf-lang')}] scanning ${file}`);
 
 	// Get keys from folder structure and the prefix
 	var keys = config.folder;
@@ -136,7 +137,7 @@ function newChanges(file, stats){
 	}
 
 	if(prefix === void 0)
-		return console.error('[sf-lang] prefix not found');
+		return console.error(`[${chalk.gray('sf-lang')}] prefix not found`);
 
 	// Read HTML/script
 	var html = fs.readFileSync(file).toString('utf8');
@@ -168,7 +169,7 @@ function newChanges(file, stats){
 			var invalid = false;
 			value = value.replace(/<([a-zA-Z\-]+).*?>(.*?)<\/\1>/g, function(full, tag, match){
 				if(match.indexOf('<') !== -1){
-					console.error('[sf-lang]', "Invalid usage: HTML tag too deep");
+					console.error(`[${chalk.gray('sf-lang')}] Invalid usage: HTML tag too deep`);
 					invalid = true;
 				}
 
@@ -261,7 +262,7 @@ function newChanges(file, stats){
 
 			var keyPath = data.indexOf(lang[i]);
 			if(keyPath === -1){
-				console.error('[sf-lang] Error: Unexpected -1 index', '('+match.bestMatchIndex+'):', lang[i]);
+				console.error(`[${chalk.gray('sf-lang')}] Error: Unexpected -1 index (${match.bestMatchIndex}):`, lang[i]);
 
 				// Error recovery
 				data.push(lang[i]);
@@ -271,7 +272,7 @@ function newChanges(file, stats){
 			keyPath = keys+keyPath;
 
 			translate(keyPath, lang[i]);
-			console.log('[sf-lang] Modified:', keyPath);
+			console.log(`[${chalk.gray('sf-lang')}] Modified:`, keyPath);
 
 			unused[match.bestMatchIndex] = false;
 		}
@@ -290,7 +291,7 @@ function newChanges(file, stats){
 		var keyPath = keys+data.indexOf(pendingCreate[i]);
 		translate(keyPath, pendingCreate[i], true);
 
-		console.log('[sf-lang] Created:', keyPath);
+		console.log(`[${chalk.gray('sf-lang')}] Created:`, keyPath);
 	}
 
 	if(jsonChanged){
@@ -427,9 +428,9 @@ module.exports = function(config_){
 				if(name.length === 2 && name[1] === ''){
 					try{
 						langs[name[0]] = JSON.parse(fs.readFileSync(config.saveDir+'/'+filename).toString('utf8'));
-						console.log('[sf-lang]', name[0], "was reloaded");
+						console.log(`[${chalk.gray('sf-lang')}]`, name[0], "was reloaded");
 					}catch(e){
-						console.log('[sf-lang]', filename, "is either invalid JSON or can't be opened");
+						console.log(`[${chalk.gray('sf-lang')}]`, filename, "is either invalid JSON or can't be opened");
 					}
 
 					// Check if some data was missing/broken with other language
@@ -464,7 +465,7 @@ module.exports = function(config_){
 							return;
 
 						for (var i = 0; i < reprocess.length; i++) {
-							console.log('[sf-lang]', 'Reprocessing:', reprocess[i]);
+							console.log(`[${chalk.gray('sf-lang')}]`, 'Reprocessing:', reprocess[i]);
 							translate(reprocess[i], _.get(langs[config.defaultLang], reprocess[i]), 'if-similar');
 						}
 					}
