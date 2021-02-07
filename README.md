@@ -7,6 +7,25 @@ If you arrived to this repository from no where, please visit the [default proje
 
 If you're using Sublime Text, always change your [text encoding into Unix](https://stackoverflow.com/a/58191795/6563200).
 
+## Getting started experimenting with the compiler
+> If you're new with the `.sf` file extension, please follow the instruction [on here](https://github.com/StefansArya/scarletsframe-compiler/tree/master/syntax-highlighter).
+
+After you cloned this project you will need to install the required dependency.
+
+```sh
+$ npm i
+```
+
+The original `.sf` compiler is inside the `/src` folder.<br>
+`sfcompiler.js` is a script that constructing some Gulp tasks for your project to help compiling `.js, .scss, .html` file.
+
+For testing the generation of `.css, .js` from compiling `.sf` file you can use this command.
+```sh
+$ npm test
+```
+
+The `.css, .js` file will be generated into `./tests/generated.css` and `./tests/generated.js`.
+
 ### Macro
 > For `## html`.
 
