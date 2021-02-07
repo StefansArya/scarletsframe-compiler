@@ -1,4 +1,5 @@
-## html
+zxc
+## html.append-to-body
 <div>
   <ul>
     <li style="{{ index !== 0 ? '' : 'display: none'}}">
@@ -21,7 +22,14 @@
   </ul>
 </div>
 
-
+## html
+<div>
+  <ul>
+    <li sf-each="x in showed">
+      <a @click="changePage(x)" class="{{ index === x ? 'selected' : '' }}">{{ x+1 }}</a>
+    </li>
+  </ul>
+</div>
 
 ## js-global
 class PagePagination{

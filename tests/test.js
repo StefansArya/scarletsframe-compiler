@@ -78,25 +78,25 @@ function TEST(){
 		});
 	}
 
-	var findJS1 = {column:0, line:50, eC:0, eL:34, eS:"PG.sf"}; // NOOP
+	var findJS1 = {column:0, line:51, eC:0, eL:42, eS:"PG.sf"}; // NOOP
 	aa('./generated.js.map', findJS1, function(data){
 		console.log("--Find:", findJS1);
 		console.log("Found:", data);
 	});
 
-	var findCSS1 = {column:10, line:13, eC:8, eL:91, eS:"PG.sf"}; // Verdana
+	var findCSS1 = {column:10, line:15, eC:8, eL:99, eS:"PG.sf"}; // Verdana
 	aa('./generated.css.map', findCSS1, function(data){
 		console.log("Find:", findCSS1);
 		console.log("Found:", data);
 	});
 
-	var findJS2 = {column:0, line:99, eC:0, eL:39, eS:"SN.sf"}; // remove(el, .)
+	var findJS2 = {column:0, line:100, eC:0, eL:39, eS:"SN.sf"}; // remove(el, .)
 	aa('./generated.js.map', findJS2, function(data){
 		console.log("--Find:", findJS2);
 		console.log("Found:", data);
 	});
 
-	var findCSS2 = {column:12, line:108, eC:4, eL:121, eS:"SN.sf"}; // (252, 248, 227, 0.97)
+	var findCSS2 = {column:12, line:106, eC:4, eL:121, eS:"SN.sf"}; // (252, 248, 227, 0.97)
 	aa('./generated.css.map', findCSS2, function(data){
 		console.log("Find:", findCSS2);
 		console.log("Found:", data);
@@ -114,13 +114,13 @@ function TEST(){
 		console.log("Found:", data);
 	});
 
-	var findJS4 = {column:2, line:166, eC:2, eL:134, eS:"HS.sf"}; // $(document).off('
+	var findJS4 = {column:2, line:167, eC:2, eL:134, eS:"HS.sf"}; // $(document).off('
 	aa('./generated.js.map', findJS4, function(data){
 		console.log("--Find:", findJS4);
 		console.log("Found:", data);
 	});
 
-	var findCSS4 = {column:12, line:145, eC:1, eL:57, eS:"HS.sf"}; // 0e0e0e
+	var findCSS4 = {column:12, line:151, eC:1, eL:57, eS:"HS.sf"}; // 0e0e0e
 	aa('./generated.css.map', findCSS4, function(data){
 		console.log("Find:", findCSS4);
 		console.log("Found:", data);

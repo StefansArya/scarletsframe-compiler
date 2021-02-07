@@ -32,17 +32,19 @@ function isInCategory(cats, fence){
 
 // Initial script before creating combined content
 const sourceInit = {
-	js:`if(!window.templates) window.templates={}; const __tmplt=window.templates;
-const _sf_internal={body_map:{},
+	js:`if(!window.templates) window.templates={};
+const _$_ = sf.dom || sf.$;
+const __tmplt = window.templates;
+const _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 	_replace(path,html){
-		if(this.body_map[path])this.body_map[path].remove();
-		return this.body_map[path] = sf.dom(html);
+		if(this.body_map[path]) this.body_map[path].remove();
+		return this.body_map[path] = _$_(html);
 	},
 	append(path,html){
-		sf.dom(document.body).append(this._replace.apply(this, arguments));
+		_$_(document.body).append(this._replace.apply(this, arguments));
 	},
 	prepend(path,html){
-		sf.dom(document.body).prepend(this._replace.apply(this, arguments));
+		_$_(document.body).prepend(this._replace.apply(this, arguments));
 	},
 };`.split('\n').join('').split('\t').join(''),
 	css:''
@@ -53,6 +55,7 @@ const _sf_internal={body_map:{},
 module.exports = class SFCompiler{
 	cache = {};
 	processing = {};
+	static sourceInit = sourceInit;
 
 	constructor(options){
 		this.options = options || {};
@@ -94,13 +97,17 @@ module.exports = class SFCompiler{
 		const that = this;
 		const {cache, processing} = this;
 
+		if(_opt === void 0)
+			_opt = {opt:{}};
+
 		that.sourceCallbackWait++;
 
 		let cached = cache[path];
 		let raw = fs.readFileSync(root+path, 'utf8');
 
 		if(cached !== void 0 && cached.raw !== void 0 && cached.raw === raw){
-			that.sourceFinish(callback, singleCompile);
+			that.sourceFinish(callback, singleCompile, _opt);
+			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true);
 			return;
 		}
 
@@ -137,8 +144,10 @@ module.exports = class SFCompiler{
 			let which = temp.slice(0, a).split('-').join('_').replace('\r', '');
 
 			if(which.indexOf('comment') === 0){
-				if(++processed === content.length)
-					that.sourceFinish(callback, singleCompile);
+				if(++processed === content.length){
+					that.sourceFinish(callback, singleCompile, _opt);
+					if(singleCompile && _opt.instant) callback(current, false, which, true);
+				}
 				continue;
 			}
 
@@ -155,15 +164,29 @@ module.exports = class SFCompiler{
 			const lastOffset = temp.split('\n').length;
 
 			if(current.rawContent === temp){
-				if(++processed === content.length)
-					that.sourceFinish(callback, singleCompile);
+				if(++processed === content.length){
+					that.sourceFinish(callback, singleCompile, _opt);
+					if(singleCompile && _opt.instant) callback(current, true, which, true);
+				}
 
 				lines += lastOffset;
 				continue;
 			}
 
+			current.rawContent = temp;
+
 			var func = processor[which];
-			if(!func) throw `[${chalk.red('Error')}] When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js-global, and scss-global'.`;
+			if(!func){
+				console.log(`[${chalk.red('Error')}] When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js, and scss'.`);
+
+				if(singleCompile && singleCompile.includes(which))
+					callback(data, true, which, isComplete);
+
+				if(++processed === content.length)
+					that.sourceFinish(callback, singleCompile);
+
+				continue;
+			}
 
 			if(isInCategory(category.css, which))
 				that.sourceChanges.css = true;
@@ -176,15 +199,15 @@ module.exports = class SFCompiler{
 			if(debugging) console.log("Which: ", which, lines);
 			func(splitPath, temp.slice(a+1).trim(), function(data){
 				Object.assign(current, data); // map, content, lines
+				const isComplete = ++processed === content.length;
 
 				if(singleCompile && singleCompile.includes(which))
-					callback(data, true);
+					callback(data, true, which, isComplete);
 
 				current.path = path;
 				proc.delete(path);
 
-				if(++processed === content.length)
-					that.sourceFinish(callback, singleCompile);
+				if(isComplete) that.sourceFinish(callback, singleCompile);
 			}, lines, that.options);
 
 			if(extra !== false)
