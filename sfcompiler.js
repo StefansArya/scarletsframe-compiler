@@ -522,11 +522,16 @@ function prepareSF(){
 				call();
 			}
 
+			// Delete cache
 			function onRemove(file, stats){
 				if(lastRem === stats.ctimeMs)
 					return;
 
 				lastRem = stats.ctimeMs;
+				file = file.split('\\').join('/');
+
+				const path = getRelativePath(basePath, file);
+				delete instance.cache[path];
 			}
 
 			gulp.watch(obj.sf.combine, obj.sf.opt)
