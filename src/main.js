@@ -138,7 +138,7 @@ module.exports = class SFCompiler{
 		if(debugging)
 			console.log("Path:", path);
 
-		let processed = 0;
+		let processed = 0, checkNew = new Set();
 		for (let i = 0; i < content.length; i++) {
 			const temp = content[i];
 			const a = temp.indexOf('\n');
@@ -164,6 +164,7 @@ module.exports = class SFCompiler{
 			if(current === void 0)
 				current = cached[actual] = {};
 
+			checkNew.add(actual);
 			const lastOffset = temp.split('\n').length;
 
 			if(current.rawContent === temp){
@@ -244,6 +245,12 @@ module.exports = class SFCompiler{
 				delete that.options.extra;
 
 			lines += lastOffset;
+		}
+
+		// Check old category cache that have been deleted on .sf file
+		for(var key in cached){
+			if(!checkNew.has(key))
+				delete cached[key];
 		}
 	}
 
