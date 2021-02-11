@@ -2,7 +2,7 @@ var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 // var mergeMap = require('merge-source-map');
-var debugging = true;
+var debugging = false;
 
 // Lazy load
 var csso, postcss, autoprefixer, terser, babel;
@@ -135,7 +135,8 @@ module.exports = class SFCompiler{
 		};
 
 		let hasHTML = -1;
-		if(debugging) console.log("Path:", path);
+		if(debugging)
+			console.log("Path:", path);
 
 		let processed = 0;
 		for (let i = 0; i < content.length; i++) {
@@ -146,7 +147,9 @@ module.exports = class SFCompiler{
 			if(which.indexOf('comment') === 0){
 				if(++processed === content.length){
 					that.sourceFinish(callback, singleCompile, _opt);
-					if(singleCompile && _opt.instant) callback(current, false, which, true);
+
+					if(debugging)
+						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
 				}
 				continue;
 			}
@@ -166,8 +169,13 @@ module.exports = class SFCompiler{
 			if(current.rawContent === temp){
 				if(++processed === content.length){
 					that.sourceFinish(callback, singleCompile, _opt);
-					if(singleCompile && _opt.instant) callback(current, true, which, true);
+
+					if(singleCompile && _opt.instant)
+						callback(current, true, which, true);
 				}
+
+				if(debugging)
+					console.log("-- Skip:", which, `(${processed} / ${content.length})`);
 
 				lines += lastOffset;
 				continue;
@@ -191,16 +199,18 @@ module.exports = class SFCompiler{
 				if(!which.includes('js') || !which.includes('ts'))
 					data.content = '';
 
-				Object.assign(current, data);
-				current.path = path;
-
+				delete cached[actual];
 				const isComplete = ++processed === content.length;
 
 				if(singleCompile && singleCompile.includes(which))
 					callback(data, true, which, isComplete);
 
-				if(isComplete)
+				if(isComplete){
 					that.sourceFinish(callback, singleCompile);
+
+					if(debugging)
+						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
+				}
 
 				continue;
 			}
@@ -213,10 +223,13 @@ module.exports = class SFCompiler{
 			const proc = processing[which];
 			proc.add(path);
 
-			if(debugging) console.log("Which: ", which, lines);
+			if(debugging) console.log("- Which:", which, lines);
 			func(splitPath, temp.slice(a+1).trim(), function(data){
 				Object.assign(current, data); // map, content, lines
 				const isComplete = ++processed === content.length;
+
+				if(debugging)
+					console.log("-- Done:", which, isComplete, `(${processed} / ${content.length})`);
 
 				if(singleCompile && singleCompile.includes(which))
 					callback(data, true, which, isComplete);
