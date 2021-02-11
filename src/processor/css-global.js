@@ -1,4 +1,4 @@
-// Some information are available on js_global.js
+// Some information are available on js.js
 
 module.exports = function(path, content, callback, offset, options){
 	const lines = content.split('\n').length;

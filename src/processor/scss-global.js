@@ -1,4 +1,4 @@
-// Some information are available on js_global.js
+// Some information are available on js.js
 
 var sass, SourceMapConsumer;
 module.exports = function(path, content, callback, offset, options){
