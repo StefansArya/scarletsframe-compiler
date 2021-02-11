@@ -2,7 +2,7 @@ var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 // var mergeMap = require('merge-source-map');
-var debugging = false;
+var debugging = true;
 
 // Lazy load
 var csso, postcss, autoprefixer, terser, babel;
@@ -10,14 +10,14 @@ var csso, postcss, autoprefixer, terser, babel;
 // Contribution welcome :')
 const processor = {
 	html: require('./processor/html.js'),
-	js_global: require('./processor/js_global.js'),
-	css_global: require('./processor/css_global.js'),
-	scss_global: require('./processor/scss_global.js'),
+	js_global: require('./processor/js-global.js'),
+	css_global: require('./processor/css-global.js'),
+	scss_global: require('./processor/scss-global.js'),
 };
 
 const category = {
-	js:['html', 'js_global'],
-	css:['css_global', 'scss_global']
+	js:['html', 'js', 'js_global'],
+	css:['css', 'css_global', 'scss', 'scss_global']
 };
 
 function isInCategory(cats, fence){
@@ -177,12 +177,29 @@ module.exports = class SFCompiler{
 
 			var func = processor[which];
 			if(!func){
-				console.log(`[${chalk.red('Error')}] When processing file "${root+path}", we have found ${JSON.stringify(which)} that was unsupported.\nCurrently the compiler only support 'html, js, and scss'.`);
+				const errorFile = JSON.stringify(root+path);
+				const whichCat = JSON.stringify('## '+which);
+
+				console.log(`[${chalk.red('Error')}] When processing file ${errorFile}, we have found ${whichCat} that was unsupported.\nCurrently the compiler only support "html, js-global, and scss-global".`);
+
+				var data = { // Dummy
+					map:[],
+					content:`console.error('The compiler doesn\'t support ${whichCat} in file: ${errorFile}');`,
+					lines:0
+				};
+
+				if(!which.includes('js') || !which.includes('ts'))
+					data.content = '';
+
+				Object.assign(current, data);
+				current.path = path;
+
+				const isComplete = ++processed === content.length;
 
 				if(singleCompile && singleCompile.includes(which))
 					callback(data, true, which, isComplete);
 
-				if(++processed === content.length)
+				if(isComplete)
 					that.sourceFinish(callback, singleCompile);
 
 				continue;
@@ -227,7 +244,8 @@ module.exports = class SFCompiler{
 
 		// Return if the compiler still processing the same category
 		for (var i = 0; i < relations.length; i++) {
-			if(processing[relations[i]].size !== 0)
+			const cat = processing[relations[i]];
+			if(cat && cat.size !== 0)
 				return callback(false);
 		}
 

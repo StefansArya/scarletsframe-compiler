@@ -463,7 +463,7 @@ function htmlTask(path){
 //
 const SFCompiler = require('./src/main.js');
 const SFCompilerHelper = require('./src/helper.js');
-const SFInstantReload = ['js_global', 'html'];
+const SFInstantReload = ['js', 'js_global', 'html'];
 function prepareSF(){
 	watchPath('sf', function(name, obj){
 		var last = 0;
