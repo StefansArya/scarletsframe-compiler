@@ -23,22 +23,9 @@ module.exports = {
 			else {
 				addition += `if(!window.${word})window.${word}=${word};else{
 const glob = window.${word};
-const globStatic = Object.getOwnPropertyDescriptors(glob);
-const globProto = Object.getOwnPropertyDescriptors(glob.prototype);
-const tempStatic = Object.getOwnPropertyDescriptors(${word});
-const tempProto = Object.getOwnPropertyDescriptors(${word}.prototype);
-for(const key in globProto)
-	if(!tempProto[key]) delete glob.prototype[key];
-for(const key in globStatic)
-	if(!tempStatic[key]) delete glob[key];
-for(const key in tempProto){
-	if(!tempProto[key].writable || key === 'constructor') continue;
-	Object.defineProperty(glob.prototype, key, tempProto[key]);
-}
-for(const key in tempStatic){
-	if(!tempStatic[key].writable || key === 'constructor') continue;
-	Object.defineProperty(glob, key, tempStatic[key]);
-}
+if(window.sf$hotReload === void 0)
+	alert("This hot reload feature need framework v0.34.9 or higher");
+window.sf$hotReload.replaceClass(glob, ${word});
 ${word}=glob;
 if(glob.sf$refresh)glob.sf$refresh.forEach(v=>v());
 }`;
