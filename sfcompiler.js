@@ -116,7 +116,7 @@ function prepareJS(){
 				rootPath = rootPath.join('/') + '/**/*.js';
 			}
 
-			gulp.watch(rootPath).on('change', function(file, stats){
+			function onChange(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
@@ -131,7 +131,13 @@ function prepareJS(){
 				}
 
 				call();
-			});
+			}
+
+			gulp.watch(rootPath)
+				.on('add', onChange)
+				.on('change', onChange)
+				.on('unlink', onChange)
+				.on('error', console.error);
 
 			var isExist = obj.js;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
@@ -271,13 +277,17 @@ function prepareSCSS(){
 
 		var call = gulp.series(name);
 		if(compiling === false){
-			gulp.watch(obj.scss.combine).on('change', function(file, stats){
+			function onChange(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
 				last = stats.ctimeMs;
 				call();
-			});
+			}
+
+			gulp.watch(obj.scss.combine)
+				.on('add', onChange).on('change', onChange).on('unlink', onChange)
+				.on('error', console.error);
 
 			var isExist = obj.scss;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
@@ -366,7 +376,7 @@ function prepareHTML(){
 		var call = gulp.series(name);
 		if(compiling === false){
 			if(obj.static !== void 0){
-				gulp.watch(obj.static).on('change', function(file, stats){
+				function onChange(file, stats){
 					if(last === stats.ctimeMs)
 						return;
 
@@ -377,13 +387,17 @@ function prepareHTML(){
 						browserSync.sockets.emit('sf-hot-static', file);
 						browserSync.notify("Static HTML have an update");
 					}
-				});
+				}
+
+				gulp.watch(obj.static)
+				.on('add', onChange).on('change', onChange).on('unlink', onChange)
+				.on('error', console.error);
 
 				// obj.combine = excludeSource(obj.combine, obj.static);
 			}
 
 			var basePath = obj.html.opt.base+'/';
-			gulp.watch(obj.html.combine).on('change', function(file, stats){
+			function onChange(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
@@ -407,7 +421,11 @@ function prepareHTML(){
 				}
 
 				call();
-			});
+			}
+
+			gulp.watch(obj.html.combine)
+				.on('add', onChange).on('change', onChange).on('unlink', onChange)
+				.on('error', console.error);
 
 			var isExist = obj.html;
 			isExist = fs.existsSync(isExist.folder+isExist.file);
@@ -466,7 +484,7 @@ const SFCompilerHelper = require('./src/helper.js');
 const SFInstantReload = ['js', 'js_global', 'html'];
 function prepareSF(){
 	watchPath('sf', function(name, obj){
-		var last = 0;
+		var last = 0, lastRem = 0;
 
 		const instance = new SFCompiler({
 			htmlPrefix: obj.sf.prefix || '',
@@ -479,7 +497,7 @@ function prepareSF(){
 		var call = gulp.series(name);
 		if(compiling === false){
 			var basePath = obj.sf.opt.base+'/';
-			gulp.watch(obj.sf.combine, obj.sf.opt).on('change', function(file, stats){
+			function onChange(file, stats){
 				if(last === stats.ctimeMs)
 					return;
 
@@ -502,7 +520,18 @@ function prepareSF(){
 				}
 
 				call();
-			});
+			}
+
+			function onRemove(file, stats){
+				if(lastRem === stats.ctimeMs)
+					return;
+
+				lastRem = stats.ctimeMs;
+			}
+
+			gulp.watch(obj.sf.combine, obj.sf.opt)
+				.on('add', onChange).on('change', onChange).on('unlink', onRemove)
+				.on('error', console.error);
 
 			var isExist = obj.sf;
 			isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
