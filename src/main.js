@@ -107,7 +107,7 @@ module.exports = class SFCompiler{
 
 		if(cached !== void 0 && cached.raw !== void 0 && cached.raw === raw){
 			that.sourceFinish(callback, singleCompile, _opt);
-			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true);
+			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
 			return;
 		}
 
@@ -151,6 +151,8 @@ module.exports = class SFCompiler{
 					if(debugging)
 						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
 				}
+
+				lines += temp.split('\n').length;
 				continue;
 			}
 
@@ -172,7 +174,7 @@ module.exports = class SFCompiler{
 					that.sourceFinish(callback, singleCompile, _opt);
 
 					if(singleCompile && _opt.instant)
-						callback(current, true, which, true);
+						callback(current, true, which, true, cached);
 				}
 
 				if(debugging)
@@ -204,7 +206,7 @@ module.exports = class SFCompiler{
 				const isComplete = ++processed === content.length;
 
 				if(singleCompile && singleCompile.includes(which))
-					callback(data, true, which, isComplete);
+					callback(data, true, which, isComplete, cached);
 
 				if(isComplete){
 					that.sourceFinish(callback, singleCompile);
@@ -213,6 +215,7 @@ module.exports = class SFCompiler{
 						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
 				}
 
+				lines += lastOffset;
 				continue;
 			}
 
@@ -233,7 +236,7 @@ module.exports = class SFCompiler{
 					console.log("-- Done:", which, isComplete, `(${processed} / ${content.length})`);
 
 				if(singleCompile && singleCompile.includes(which))
-					callback(data, true, which, isComplete);
+					callback(data, true, which, isComplete, cached);
 
 				current.path = path;
 				proc.delete(path);
