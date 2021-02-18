@@ -2,6 +2,7 @@ module.exports = function(obj, gulp){
 // Load variables
 var path = obj.path;
 var includeSourceMap = obj.includeSourceMap;
+var hotSourceMapContent = obj.hotSourceMapContent || true;
 var hotReload = obj.hotReload || {};
 var startupCompile = obj.startupCompile;
 
@@ -15,6 +16,7 @@ var header = require('gulp-header');
 var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
 var chalk = require('chalk');
+const {SourceMapGenerator} = require('source-map');
 
 // lazy init to improve startup performance
 var browserSync = false;
@@ -93,7 +95,6 @@ function init(only){
 function prepareJS(){
 	watchPath('js', function(name, obj){
 		var last = 0;
-
 		name = 'js-'+name;
 
 		var folderLastPath = obj.js.folder.slice(-1);
@@ -125,7 +126,28 @@ function prepareJS(){
 					return;
 
 				if(browserSync && hotReload.js === true){
+					let relativePath = getRelativePathFromList(file, rootPath);
 					var changed = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+
+					// Generate sourcemap
+					var map = new SourceMapGenerator({
+						file: `unused.text`
+					});
+
+					let lines = changed.split('\n').length;
+					for (let a = 1; a <= lines; a++) {
+						map.addMapping({
+							original: {line: a, column: 0},
+							generated: {line: a+2, column: 0},
+							source: relativePath,
+						});
+					}
+
+					changed += sourceMapBase64(map.toString());
+
+					if(hotSourceMapContent)
+						map.setSourceContent(relativePath, cache);
+
 					browserSync.sockets.emit('sf-hot-js', changed);
 					browserSync.notify("JavaScript Reloaded");
 				}
@@ -506,14 +528,36 @@ function prepareSF(){
 					file = file.split('\\').join('/');
 					try{
 						const path = getRelativePath(basePath, file);
-						instance.loadSource(file.replace(path, ''), path, function(data, isData){
+						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
 							if(!isData) return;
 
-							data = SFCompilerHelper.jsGetScopeVar(data.content, path);
-							if(data.slice(0, 8) === '__tmplt[')
-								data = "window.__tmplt=window.templates;"+data+';window.templates=window.templates;';
+							let content = SFCompilerHelper.jsGetScopeVar(data.content, path);
+							if(content.slice(0, 8) === '__tmplt[')
+								content = "window.__tmplt=window.templates;"+content+';window.templates=window.templates;';
+							else{
+								// Generate sourcemap for JS fence
+								var map = new SourceMapGenerator({
+									file: `unused.text`
+								});
 
-							browserSync.sockets.emit('sf-hot-js', data);
+								if(hotSourceMapContent && data.map[0])
+									map.setSourceContent(data.map[0].source,
+										"\n".repeat(data.map[0].originalLine-1)
+										+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]); // Remove additional compiler script
+
+								for (let a = 0, n=data.map; a < n.length; a++) {
+									const t = n[a];
+									map.addMapping({
+										original: {line: t.originalLine, column: t.originalColumn},
+										generated: {line: t.generatedLine+2, column: t.generatedColumn},
+										source: t.source,
+									});
+								}
+
+								content += sourceMapBase64(map.toString());
+							}
+
+							browserSync.sockets.emit('sf-hot-js', content);
 							browserSync.notify("JavaScript Reloaded");
 						}, SFInstantReload, obj.sf);
 					}catch(e){console.error(e)}
@@ -690,6 +734,22 @@ function splitFolderPath(fullPath){
 		folder += '/';
 
 	return [file, folder];
+}
+
+function sourceMapBase64(str){
+	return '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + Buffer.from(str).toString('base64');
+}
+
+function getRelativePathFromList(full, list){
+	full = full.split('\\').join('/');
+	for (var i = 0; i < list.length; i++) {
+		let path = list[i].split('*', 1)[0];
+		if(full.includes(path))
+			return full.replace(path, '');
+	}
+
+	console.error("Failed to get relative path for:", full);
+	return 'undefined';
 }
 
 // Check if some file type haven't been supported
