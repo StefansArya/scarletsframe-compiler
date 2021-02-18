@@ -134,6 +134,9 @@ function prepareJS(){
 						file: `unused.text`
 					});
 
+					if(hotSourceMapContent)
+						map.setSourceContent(relativePath, changed);
+
 					let lines = changed.split('\n').length;
 					for (let a = 1; a <= lines; a++) {
 						map.addMapping({
@@ -144,9 +147,6 @@ function prepareJS(){
 					}
 
 					changed += sourceMapBase64(map.toString());
-
-					if(hotSourceMapContent)
-						map.setSourceContent(relativePath, cache);
 
 					browserSync.sockets.emit('sf-hot-js', changed);
 					browserSync.notify("JavaScript Reloaded");
@@ -543,7 +543,7 @@ function prepareSF(){
 								if(hotSourceMapContent && data.map[0])
 									map.setSourceContent(data.map[0].source,
 										"\n".repeat(data.map[0].originalLine-1)
-										+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]); // Remove additional compiler script
+										+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]) + '// This may have additional script for development, added by the compiler'; // Remove additional compiler script
 
 								for (let a = 0, n=data.map; a < n.length; a++) {
 									const t = n[a];
