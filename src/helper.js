@@ -13,7 +13,7 @@ module.exports = {
 		if(has === false) return content;
 
 		// Note: late window assignment, to avoid possible memory leak
-		var addition = ';';
+		var addition = '\n;';
 		let propArr = [];
 		for(let word in prop){
 			propArr.push(word);

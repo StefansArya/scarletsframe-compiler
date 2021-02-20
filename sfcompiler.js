@@ -506,7 +506,7 @@ const SFCompilerHelper = require('./src/helper.js');
 const SFInstantReload = ['js', 'js_global', 'html'];
 function prepareSF(){
 	watchPath('sf', function(name, obj){
-		var last = 0, lastRem = 0;
+		var last = 0;
 
 		const instance = new SFCompiler({
 			htmlPrefix: obj.sf.prefix || '',
@@ -542,9 +542,9 @@ function prepareSF(){
 
 								if(hotSourceMapContent && data.map[0])
 									map.setSourceContent(data.map[0].source,
-										"\n".repeat(data.map[0].originalLine-1)
+										"\n".repeat(data.map[0].originalLine)
 										+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]) + '// This may have additional script for development, added by the compiler'; // Remove additional compiler script
-
+								// console.log(data.map);
 								for (let a = 0, n=data.map; a < n.length; a++) {
 									const t = n[a];
 									map.addMapping({
@@ -567,11 +567,7 @@ function prepareSF(){
 			}
 
 			// Delete cache
-			function onRemove(file, stats){
-				if(lastRem === stats.ctimeMs)
-					return;
-
-				lastRem = stats.ctimeMs;
+			function onRemove(file){
 				file = file.split('\\').join('/');
 
 				const path = getRelativePath(basePath, file);

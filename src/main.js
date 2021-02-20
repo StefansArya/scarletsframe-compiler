@@ -126,7 +126,7 @@ module.exports = class SFCompiler{
 			content.shift();
 		}
 
-		lines += 2;
+		lines += 1;
 
 		let splitPath = {
 			fileName:path,
