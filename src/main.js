@@ -119,8 +119,10 @@ module.exports = class SFCompiler{
 		let content = raw.split('\n## ');
 
 		var lines = 0;
-		if(content[0].slice(0, 3) === '## ')
+		if(content[0].slice(0, 3) === '## '){
 			content[0] = content[0].slice(3);
+			lines = 1;
+		}
 		else{
 			lines = content[0].split('\n').length;
 			content.shift();
@@ -231,6 +233,8 @@ module.exports = class SFCompiler{
 			func(splitPath, temp.slice(a+1).trim(), function(data){
 				Object.assign(current, data); // map, content, lines
 				const isComplete = ++processed === content.length;
+
+				// console.log(JSON.stringify(current.map));
 
 				if(debugging)
 					console.log("-- Done:", which, isComplete, `(${processed} / ${content.length})`);
