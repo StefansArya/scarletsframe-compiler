@@ -199,11 +199,7 @@ function jsTask(path){
 			temp = temp.pipe(header(path.js.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
-				mapFile: function(mapFilePath) {
-					return mapFilePath.replace('js.map', startTime+'.js.map');
-				}
-			} : void 0))
+			temp = temp.pipe(sourcemaps.write('.')
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 				if(obj.onCompiled && --firstCompile.js === 0)
@@ -269,11 +265,7 @@ function jsTaskModule(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.mapSources(function(sourcePath, file) {
 		        return path.js.folder + sourcePath;
-		    })).pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
-				mapFile: function(mapFilePath) {
-					return mapFilePath.replace('js.map', startTime+'.js.map');
-				}
-			} : void 0))
+		    })).pipe(sourcemaps.write('.'))
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 				if(obj.onCompiled && --firstCompile.js === 0)
@@ -357,11 +349,7 @@ function scssTask(path){
 			temp = temp.pipe(header(path.scss.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
-				mapFile: function(mapFilePath) {
-					return mapFilePath.replace('css.map', startTime+'.css.map');
-				}
-			} : void 0));
+			temp = temp.pipe(sourcemaps.write('.'));
 
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.css === 0)
@@ -486,11 +474,7 @@ function htmlTask(path){
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))
 
 		if(includeSourceMap)
-			src = src.pipe(sourcemaps.write('.', obj.timestampSourceMap ? {
-				mapFile: function(mapFilePath) {
-					return mapFilePath.replace('js.map', startTime+'.js.map');
-				}
-			} : void 0));
+			src = src.pipe(sourcemaps.write('.'));
 
 		return src.pipe(gulp.dest(path.html.folder)).on('end', function(){
 				if(obj.onCompiled && --firstCompile.html === 0)
