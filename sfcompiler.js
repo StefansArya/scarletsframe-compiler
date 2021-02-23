@@ -131,7 +131,7 @@ function prepareJS(){
 
 					// Generate sourcemap
 					var map = new SourceMapGenerator({
-						file: `unused.text`
+						file: `unknown.file`
 					});
 
 					if(hotSourceMapContent)
@@ -544,6 +544,7 @@ function prepareSF(){
 									map.setSourceContent(data.map[0].source,
 										"\n".repeat(data.map[0].originalLine)
 										+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]) + '// This may have additional script for development, added by the compiler'; // Remove additional compiler script
+
 								// console.log(data.map);
 								for (let a = 0, n=data.map; a < n.length; a++) {
 									const t = n[a];
@@ -738,11 +739,23 @@ function sourceMapBase64(str){
 
 function getRelativePathFromList(full, list){
 	full = full.split('\\').join('/');
+	let fullMatch = false;
+
 	for (var i = 0; i < list.length; i++) {
-		let path = list[i].split('*', 1)[0];
+		let current = list[i];
+		if(current === full)
+			fullMatch = true;
+
+		if(!current.includes('*'))
+			continue;
+
+		let path = current.split('*', 1)[0];
 		if(full.includes(path))
 			return full.replace(path, '');
 	}
+
+	if(fullMatch)
+		return full;
 
 	console.error("Failed to get relative path for:", full);
 	return 'undefined';
