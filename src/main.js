@@ -183,6 +183,9 @@ module.exports = class SFCompiler{
 					console.log("-- Skip:", which, `(${processed} / ${content.length})`);
 
 				lines += lastOffset;
+
+				if(extra !== false)
+					delete that.options.extra;
 				continue;
 			}
 
@@ -218,6 +221,9 @@ module.exports = class SFCompiler{
 				}
 
 				lines += lastOffset;
+
+				if(extra !== false)
+					delete that.options.extra;
 				continue;
 			}
 

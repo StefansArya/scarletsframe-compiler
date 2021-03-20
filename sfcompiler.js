@@ -118,6 +118,7 @@ function prepareJS(){
 			}
 
 			function onChange(file, stats){
+				if(!stats) return call();
 				if(last === stats.ctimeMs)
 					return;
 
@@ -199,7 +200,7 @@ function jsTask(path){
 			temp = temp.pipe(header(path.js.header+"\n"));
 
 		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.')
+			temp = temp.pipe(sourcemaps.write('.'));
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 				if(obj.onCompiled && --firstCompile.js === 0)
@@ -292,6 +293,8 @@ function prepareSCSS(){
 		var call = gulp.series(name);
 		if(compiling === false){
 			function onChange(file, stats){
+				if(!stats) return call();
+
 				if(last === stats.ctimeMs)
 					return;
 
@@ -387,6 +390,7 @@ function prepareHTML(){
 		if(compiling === false){
 			if(obj.static !== void 0){
 				function onChange(file, stats){
+					if(!stats) return;
 					if(last === stats.ctimeMs)
 						return;
 
@@ -408,6 +412,7 @@ function prepareHTML(){
 
 			var basePath = obj.html.opt.base+'/';
 			function onChange(file, stats){
+				if(!stats) return call();
 				if(last === stats.ctimeMs)
 					return;
 
@@ -419,7 +424,7 @@ function prepareHTML(){
 					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 					content = content.replace(/\r/g, "");
 
-					file = getRelativePath(basePath, file);
+					file = getRelativePathFromList(file, obj.html.combine);
 
 					if(obj.html.prefix !== void 0)
 						file = obj.html.prefix+'/'+file;
@@ -462,7 +467,7 @@ function htmlTask(path){
 		var startTime = Date.now();
 		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
 
-		var src = gulp.src(path.html.combine, path.html.opt);
+		var src = gulp.src(path.html.combine);
 
 		if(includeSourceMap)
 			src = src.pipe(sourcemaps.init());
@@ -511,7 +516,7 @@ function prepareSF(){
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
-						const path = getRelativePath(basePath, file);
+						const path = getRelativePathFromList(file, obj.sf.combine);
 						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
 							if(!isData) return;
 
@@ -555,7 +560,7 @@ function prepareSF(){
 			function onRemove(file){
 				file = file.split('\\').join('/');
 
-				const path = getRelativePath(basePath, file);
+				const path = getRelativePathFromList(file, obj.sf.combine);
 				delete instance.cache[path];
 			}
 
@@ -616,7 +621,7 @@ function sfTask(path, instance){
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
-		return gulp.src(path.sf.combine, path.sf.opt).pipe(sfExt({instance, onFinish, options}));
+		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish, options}));
 	}
 }
 
@@ -725,7 +730,17 @@ function getRelativePathFromList(full, list){
 	full = full.split('\\').join('/');
 	let fullMatch = false;
 
-	for (var i = 0; i < list.length; i++) {
+	if(list.constructor === String){
+		if(list === full)
+			fullMatch = true;
+
+		if(list.includes('*')){
+			let path = list.split('*', 1)[0];
+			if(full.includes(path))
+				return full.replace(path, '');
+		}
+	}
+	else for (var i = 0; i < list.length; i++) {
 		let current = list[i];
 		if(current === full)
 			fullMatch = true;
