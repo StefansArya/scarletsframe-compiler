@@ -1,6 +1,7 @@
 var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
+const {createTreeDiver} = require('./helper.js');
 // var mergeMap = require('merge-source-map');
 var debugging = false;
 
@@ -49,6 +50,7 @@ const _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 };`.split('\n').join('').split('\t').join(''),
 	css:''
 };
+
 
 // ========================================
 
@@ -160,7 +162,7 @@ module.exports = class SFCompiler{
 
 			var actual = which, extra = false;
 			if(which.includes('.')){
-				[which, extra] = which.split('.');
+				[which, extra] = which.split(' ').join('').split('.');
 				that.options.extra = extra;
 			}
 
@@ -298,6 +300,11 @@ module.exports = class SFCompiler{
 					continue;
 
 				const current = content[fenceName];
+
+				// Will be processed later
+				if(current.router !== void 0)
+					continue;
+
 				for (let a = 0; a < current.map.length; a++) {
 					const t = current.map[a];
 					map.addMapping({
@@ -311,6 +318,19 @@ module.exports = class SFCompiler{
 			    currentLines += current.lines;
 				code += current.content+'\n';
 			}
+		}
+
+		if(which === 'js'){
+			let treeDiver = createTreeDiver(map);
+			let optRoutes = this.options.routes;
+
+			if(optRoutes._$cache === void 0){
+				treeDiver.route(optRoutes);
+				optRoutes._$cache = treeDiver.getCode();
+			}
+
+			code += optRoutes._$cache;
+			treeDiver.mapRoute(optRoutes);
 		}
 
 		const mappingURL = `${distName}.${which}`;

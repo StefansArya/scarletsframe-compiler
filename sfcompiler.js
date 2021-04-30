@@ -497,9 +497,29 @@ function prepareSF(){
 	watchPath('sf', function(name, obj){
 		var last = 0;
 
+		let check = obj.sf.combine;
+		if(check.constructor !== Array) check = [check];
+
+		let _getSrcPath = false;
+		for (var i = 0; i < check.length; i++) {
+			if(!check[i].includes('*')) continue;
+			let temp = check[i].split('*')[0].slice(0, -1);
+
+			if(_getSrcPath === false || temp.length < _getSrcPath.length)
+				_getSrcPath = temp;
+		}
+
+		let hasRoutes = false;
+		try{
+			fs.accessSync(_getSrcPath+'/routes', fs.constants.R_OK);
+			hasRoutes = true;
+		}catch(e){}
+
 		const instance = new SFCompiler({
 			htmlPrefix: obj.sf.prefix || '',
-			minify: compiling
+			minify: compiling,
+			srcPath: _getSrcPath,
+			routes: hasRoutes && {}
 		});
 
 		name = 'sf-'+name;
@@ -520,10 +540,31 @@ function prepareSF(){
 						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
 							if(!isData) return;
 
-							let content = SFCompilerHelper.jsGetScopeVar(data.content, path);
-							if(content.slice(0, 8) === '__tmplt[')
-								content = "window.__tmplt=window.templates;"+content+';window.templates=window.templates;';
-							else{
+							let jsMap = true, content = '';
+
+							// When it's a router
+							if(data.router){
+								// Generate sourcemap for JS fence
+								let map = data._routerJS && new SourceMapGenerator({
+									file: `unused.text`
+								});
+
+								var tempObj = {};
+								SFCompilerHelper.diveObject(tempObj, data.router.filePath.slice(7).split('/'), data);
+
+								let treeDiver = SFCompilerHelper.createTreeDiver(map, true);
+								treeDiver.route(tempObj);
+								content = treeDiver.getCode();
+							}
+							else {
+								content = SFCompilerHelper.jsGetScopeVar(data.content, path);
+								if(content.slice(0, 8) === '__tmplt['){
+									jsMap = false;
+									content = "window.__tmplt=window.templates;"+content+';window.templates=window.templates;';
+								}
+							}
+
+							if(jsMap){
 								// Generate sourcemap for JS fence
 								var map = new SourceMapGenerator({
 									file: `unused.text`
@@ -562,6 +603,11 @@ function prepareSF(){
 
 				const path = getRelativePathFromList(file, obj.sf.combine);
 				delete instance.cache[path];
+
+				if(instance.options.routes){
+					SFCompilerHelper.diveDelete(instance.options.routes, path.slice(7).split('/'));
+					instance.options.routes._$cache = false;
+				}
 			}
 
 			gulp.watch(obj.sf.combine, obj.sf.opt)
@@ -587,6 +633,8 @@ function sfTask(path, instance){
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
 		path.sf.folder += '/';
 
+	let isStartup = {counter:0};
+
 	return function(){
 		obj.onCompiled && firstCompile.sf++;
 
@@ -596,7 +644,34 @@ function sfTask(path, instance){
 		const options = compiling ? {autoprefixer:true, minify:true} : {};
 		options._opt = path.sf;
 
+		let sfExtOption = {instance, onFinish, options, data:isStartup};
+
+		// Only run after the last file on startup
+		let _changes = {};
+		let timeEnd = false, timeFirst = true;
+
 		function onFinish(changes){
+			if(isStartup !== false){
+				_changes.js = _changes.js || changes.js;
+				_changes.css = _changes.css || changes.css;
+
+				// Start the wait timer on first file
+				if(timeFirst){
+					timeFirst = false;
+					setTimeout(()=> {
+						timeEnd = true;
+						if(isStartup === false) return;
+						onFinish(_changes);
+					}, 1000);
+				}
+
+				if(!(--isStartup.counter === 0 && timeEnd))
+					return;
+
+				_changes = isStartup = false;
+				delete sfExtOption.data;
+			}
+
 			function extraction(data){
 				if(data === false) return;
 				const {sourceRoot,distName,which,code,map} = data;
@@ -621,7 +696,7 @@ function sfTask(path, instance){
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
-		return gulp.src(path.sf.combine).pipe(sfExt({instance, onFinish, options}));
+		return gulp.src(path.sf.combine).pipe(sfExt(sfExtOption));
 	}
 }
 
@@ -832,5 +907,9 @@ function watchPath(which, watch){
 		watch('default', default_);
 	}
 }
+
+return {
+	gulp
+};
 
 };

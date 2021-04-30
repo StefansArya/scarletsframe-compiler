@@ -18,11 +18,13 @@
  */
 
 const getGlobalClass = /(?:^|^ )class (\w+)/gm;
+const {diveObject} = require('../helper.js');
 
 module.exports = function(path, content, callback, offset, options){
 	const lines = content.split('\n').length;
+	const result = {};
 
-	var map = [];
+	var map = result.map = [];
 	for (var i = 0; i < lines; i++) {
 		map.push({
 			originalLine: offset+i,
@@ -33,6 +35,71 @@ module.exports = function(path, content, callback, offset, options){
 		});
 	}
 
+	if(options.extra){
+		if(options.extra === 'router') {
+			let prefix = options.htmlPrefix || '';
+			if(options.htmlPrefix) prefix += '/';
+
+			if(!options.routes)
+				return console.error(options.extra, "is used but 'routes/' folder was not found. Src file:", prefix + path.fileName);
+
+			if(path.fileName.indexOf('routes/') !== 0)
+				return console.error(options.extra, "is not suported for .sf file that was not from inside of 'routes/' folder. Src file:", prefix + path.fileName);
+
+			let relative = path.fileName.slice(7); // routes/...
+			if(relative.slice(0,1) !== '+')
+				return console.error("Routes should be begin with Views element selector (+routable-element). For example: /src/routes/+vw-pages/... Src file:", prefix + path.fileName, ", But got:", relative);
+
+			relative = relative.slice(relative.lastIndexOf('+'));
+			result._routerJS = result;
+
+			let ii = -3;
+			if(relative.slice(-3) !== '.sf')
+				ii = void 0;
+
+			// Also remove .sf extension
+			let _path = relative.slice(relative.indexOf('/'), ii).replace('/_', '/:');
+			if(_path === '/index')
+				_path = '/';
+
+			result.router = {
+				path:_path,
+				filePath: path.fileName
+			};
+
+			let HTML = diveObject(options.routes, path.fileName.slice(7).split('/'));
+			if(HTML && HTML._routerHTML){
+				result._routerHTML = HTML._routerHTML;
+				HTML = HTML._routerHTML.content;
+			}
+			else HTML = '""';
+
+			if(HTML.slice(0, 1) !== '"')
+				return console.error("HTML must be escaped:\n", prefix + path.fileName, '=' , HTML);
+
+			diveObject(options.routes, path.fileName.slice(7).split('/'), result);
+			content = content.replace('= {', '={')
+				.replace('={', '{html: '+HTML+',');
+
+			options.routes._$cache = void 0;
+			if(content.slice(-1) !== '}')
+				return console.error(options.extra, "must end with '}'. Src file:", prefix + path.fileName);
+		}
+		else return console.error(options.extra, "is not suported for JS options in", prefix + path.fileName);
+	}
+	else {
+		// For hot reloading class in the global scope
+		if(!options.minify){
+			let addition = '';
+			content.replace(getGlobalClass, (full, name)=>{
+				addition += `if(!window.${name})window.${name}=${name};Object.defineProperty(${name}.prototype, "sf$filePath", {configurable:true, value:"${path.base+'/'+path.fileName}"});`;
+			});
+
+			if(addition.length !== 0)
+				content += `;${addition}`
+		}
+	}
+
 	if(content.includes('#this.path')){
 		let prefix = options.htmlPrefix || '';
 		if(options.htmlPrefix) prefix += '/';
@@ -40,16 +107,7 @@ module.exports = function(path, content, callback, offset, options){
 		content = content.split('#this.path').join(`"${prefix + path.fileName}"`);
 	}
 
-	// For hot reloading class in the global scope
-	if(!options.minify){
-		let addition = '';
-		content.replace(getGlobalClass, (full, name)=>{
-			addition += `if(!window.${name})window.${name}=${name};Object.defineProperty(${name}.prototype, "sf$filePath", {configurable:true, value:"${path.base+'/'+path.fileName}"});`;
-		});
-
-		if(addition.length !== 0)
-			content += `;${addition}`
-	}
-
-	callback({content, map, lines});
+	result.content = content;
+	result.lines = lines;
+	callback(result);
 }
