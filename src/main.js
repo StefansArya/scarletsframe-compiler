@@ -38,8 +38,11 @@ const _$_ = sf.dom || sf.$;
 const __tmplt = window.templates;
 const _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 	_replace(path,html){
+		let h = _$_(html);
 		if(this.body_map[path]) this.body_map[path].remove();
-		return this.body_map[path] = _$_(html);
+
+		this.reinitViews && this.reinitViews(h);
+		return this.body_map[path] = h;
 	},
 	append(path,html){
 		_$_(document.body).append(this._replace.apply(this, arguments));
@@ -47,7 +50,7 @@ const _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 	prepend(path,html){
 		_$_(document.body).prepend(this._replace.apply(this, arguments));
 	},
-};`.split('\n').join('').split('\t').join(''),
+};`.split('\n').join('').split('\t').join(''), // make it one line
 	css:''
 };
 
