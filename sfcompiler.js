@@ -650,7 +650,9 @@ function sfTask(path, instance){
 		let _changes = {};
 		let timeEnd = false, timeFirst = true;
 
-		function onFinish(changes){
+		function onFinish(changes, afterThrottle){
+			if(afterThrottle) isStartup = false;
+
 			if(isStartup !== false){
 				_changes.js = _changes.js || changes.js;
 				_changes.css = _changes.css || changes.css;

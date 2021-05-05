@@ -78,12 +78,20 @@ module.exports = class SFCompiler{
 
 		const temp = this.sourceChanges;
 		this.sourceChanges = {};
-		callback(temp);
+
+		let afterThrottle = this.afterCallbackThrottle;
+		this.afterCallbackThrottle = false;
+
+		callback(temp, afterThrottle);
 	}
 
 	sourceCallbackWait = 0; // for throttling
+	afterCallbackThrottle = false;
 	sourceFinish(callback, singleCompile){
-		if(--this.sourceCallbackWait !== 0) return;
+		if(--this.sourceCallbackWait !== 0){
+			this.afterCallbackThrottle = true;
+			return;
+		}
 
 		if(this.firstInit !== false){
 			clearTimeout(this.firstInitThrottle);
