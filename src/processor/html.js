@@ -24,8 +24,10 @@ module.exports = function(path, content, callback, offset, options){
 		callback(result);
 		return;
 	}
-	else if(options.extra !== void 0)
+	else if(options.extra !== void 0){
+		callback({map:[], content:'', lines:0});
 		return console.error(options.extra, "is not suported for HTML options in", prefix + path.fileName);
+	}
 
 	if(path.fileName.indexOf('routes/') === 0){
 		let relative = path.fileName.slice(7); // routes/...

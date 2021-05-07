@@ -113,10 +113,17 @@ module.exports = class SFCompiler{
 		if(_opt === void 0)
 			_opt = {opt:{}};
 
-		that.sourceCallbackWait++;
-
 		let cached = cache[path];
-		let raw = fs.readFileSync(root+path, 'utf8');
+
+		try{
+			var raw = fs.readFileSync(root+path, 'utf8');
+		} catch(e){
+			that.sourceFinish(callback, singleCompile, _opt);
+			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
+			return;
+		}
+
+		that.sourceCallbackWait++;
 
 		if(cached !== void 0 && cached.raw !== void 0 && cached.raw === raw){
 			that.sourceFinish(callback, singleCompile, _opt);
