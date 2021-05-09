@@ -17,6 +17,7 @@ var fs = require('fs');
 var SFLang = require('./sf-lang')(obj.translate);
 var chalk = require('chalk');
 const {SourceMapGenerator} = require('source-map');
+var getRelativePathFromList = require('./sf-relative-path.js');
 
 // lazy init to improve startup performance
 var browserSync = false;
@@ -127,7 +128,7 @@ function prepareJS(){
 					return;
 
 				if(browserSync && hotReload.js === true){
-					let relativePath = getRelativePathFromList(file, rootPath);
+					let relativePath = getRelativePathFromList(file, rootPath, obj.js.root);
 					var changed = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 
 					// Generate sourcemap
@@ -424,7 +425,7 @@ function prepareHTML(){
 					var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 					content = content.replace(/\r/g, "");
 
-					file = getRelativePathFromList(file, obj.html.combine);
+					file = getRelativePathFromList(file, obj.html.combine, obj.html.root);
 
 					if(obj.html.prefix !== void 0)
 						file = obj.html.prefix+'/'+file;
@@ -536,7 +537,7 @@ function prepareSF(){
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
-						const path = getRelativePathFromList(file, obj.sf.combine);
+						const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
 							if(!isData) return;
 
@@ -590,7 +591,7 @@ function prepareSF(){
 
 							browserSync.sockets.emit('sf-hot-js', content);
 							browserSync.notify("JavaScript Reloaded");
-						}, SFInstantReload, obj.sf);
+						}, SFInstantReload, obj.sf, true);
 					}catch(e){console.error(e)}
 				}
 
@@ -601,7 +602,7 @@ function prepareSF(){
 			function onRemove(file){
 				file = file.split('\\').join('/');
 
-				const path = getRelativePathFromList(file, obj.sf.combine);
+				const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 				delete instance.cache[path];
 
 				if(instance.options.routes){
@@ -673,6 +674,9 @@ function sfTask(path, instance){
 				_changes = isStartup = false;
 				delete sfExtOption.data;
 			}
+
+			if(process.env.debug)
+				console.log(1, changes);
 
 			function extraction(data){
 				if(data === false) return;
@@ -803,40 +807,6 @@ function sourceMapBase64(str){
 	return '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + Buffer.from(str).toString('base64');
 }
 
-function getRelativePathFromList(full, list){
-	full = full.split('\\').join('/');
-	let fullMatch = false;
-
-	if(list.constructor === String){
-		if(list === full)
-			fullMatch = true;
-
-		if(list.includes('*')){
-			let path = list.split('*', 1)[0];
-			if(full.includes(path))
-				return full.replace(path, '');
-		}
-	}
-	else for (var i = 0; i < list.length; i++) {
-		let current = list[i];
-		if(current === full)
-			fullMatch = true;
-
-		if(!current.includes('*'))
-			continue;
-
-		let path = current.split('*', 1)[0];
-		if(full.includes(path))
-			return full.replace(path, '');
-	}
-
-	if(fullMatch)
-		return full;
-
-	console.error("Failed to get relative path for:", full);
-	return 'undefined';
-}
-
 // Check if some file type haven't been supported
 function checkIncompatiblePath(name, obj){
 	if(obj.css !== void 0)
@@ -860,7 +830,7 @@ function watchPath_(key, temp, which){
 	checkIncompatiblePath(key, temp);
 
 	ref.opt = {
-		base:(ref.combine.constructor === String ? ref.combine : ref.combine[0]).split('/')[0]
+		base: ref.root || (ref.combine.constructor === String ? ref.combine : ref.combine[0]).split('/')[0]
 	};
 
 	const strip = (temp.stripURL || '$%');

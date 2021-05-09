@@ -106,7 +106,8 @@ module.exports = class SFCompiler{
 
 	// Open the source, split it
 	sourceChanges = {};
-	loadSource(root, path, callback, singleCompile, _opt){
+	sourcePending = {};
+	loadSource(root, path, callback, singleCompile, _opt, pending){
 		const that = this;
 		const {cache, processing} = this;
 
@@ -131,8 +132,16 @@ module.exports = class SFCompiler{
 			return;
 		}
 
-		if(cached === void 0)
-			cached = cache[path] = {};
+		if(cached === void 0){
+			if(pending !== true){
+				if(this.sourcePending[path] !== void 0){
+					cached = cache[path] = this.sourcePending[path];
+					delete this.sourcePending[path];
+				}
+				else cached = cache[path] = {};
+			}
+			else cached = this.sourcePending[path] = {};
+		}
 
 		cached.raw = raw;
 
