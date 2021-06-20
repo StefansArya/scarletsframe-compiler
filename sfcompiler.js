@@ -537,11 +537,19 @@ function prepareSF(){
 				if(browserSync && hotReload.sf === true){
 					file = file.split('\\').join('/');
 					try{
+						let pendingHTML = [];
+						let pendingHTMLTimer = false;
+						let pendingHTMLSend = ()=> {
+							browserSync.sockets.emit('sf-hot-js', pendingHTML.join(';'));
+							browserSync.notify("HTML Reloaded");
+							pendingHTML.length = 0;
+						};
+
 						const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
 							if(!isData) return;
 
-							let jsMap = true, content = '';
+							let jsMap = true, content = '', isHTML = false;
 
 							// When it's a router
 							if(data.router){
@@ -556,12 +564,15 @@ function prepareSF(){
 								let treeDiver = SFCompilerHelper.createTreeDiver(map, true);
 								treeDiver.route(tempObj);
 								content = treeDiver.getCode();
+
+								isHTML = true;
 							}
 							else {
 								content = SFCompilerHelper.jsGetScopeVar(data.content, path);
 								if(content.slice(0, 8) === '__tmplt['){
 									jsMap = false;
 									content = "window.__tmplt=window.templates;"+content+';window.templates=window.templates;';
+									isHTML = true;
 								}
 							}
 
@@ -589,8 +600,26 @@ function prepareSF(){
 								content += sourceMapBase64(map.toString());
 							}
 
+							if(isHTML){
+								pendingHTML.push(content);
+
+								if(isComplete){
+									pendingHTMLSend();
+									return;
+								}
+
+								clearTimeout(pendingHTMLTimer);
+								pendingHTMLTimer = setTimeout(pendingHTMLSend, 10000);
+								return;
+							}
+
 							browserSync.sockets.emit('sf-hot-js', content);
 							browserSync.notify("JavaScript Reloaded");
+
+							if(isComplete && pendingHTML.length !== 0){
+								pendingHTMLSend();
+								clearTimeout(pendingHTMLTimer);
+							}
 						}, SFInstantReload, obj.sf, true);
 					}catch(e){console.error(e)}
 				}
@@ -649,27 +678,26 @@ function sfTask(path, instance){
 
 		// Only run after the last file on startup
 		let _changes = {};
-		let timeEnd = false, timeFirst = true;
+		let timeEnd = false, timeWait = 0;
 
 		function onFinish(changes, afterThrottle){
-			if(afterThrottle) isStartup = false;
+			if(afterThrottle === 'throttled') isStartup = false;
 
 			if(isStartup !== false){
 				_changes.js = _changes.js || changes.js;
 				_changes.css = _changes.css || changes.css;
 
-				// Start the wait timer on first file
-				if(timeFirst){
-					timeFirst = false;
-					setTimeout(()=> {
+				if(!(--isStartup.counter === 0 && timeEnd)){
+					// Start the wait timer
+					clearTimeout(timeWait);
+					timeWait = setTimeout(()=> {
 						timeEnd = true;
 						if(isStartup === false) return;
-						onFinish(_changes);
-					}, 1000);
-				}
+						onFinish(_changes, 'throttled');
+					}, 3000);
 
-				if(!(--isStartup.counter === 0 && timeEnd))
 					return;
+				}
 
 				_changes = isStartup = false;
 				delete sfExtOption.data;
@@ -682,6 +710,7 @@ function sfTask(path, instance){
 				if(data === false) return;
 				const {sourceRoot,distName,which,code,map} = data;
 
+				code | 0;
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
 
 				if(includeSourceMap)

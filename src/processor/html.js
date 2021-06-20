@@ -6,6 +6,10 @@ const {diveObject} = require('../helper.js');
 const empty_array = Object.freeze([]);
 module.exports = function(path, content, callback, offset, options){
 	let result = {lines:1, map: empty_array};
+
+	// Don't minify the HTML on development mode
+	// because it may be used for modifying from the browser
+
 	const html = JSON.stringify(!options.minify
 		? content
 		: htmlmin.minify(content, { collapseWhitespace: true })
