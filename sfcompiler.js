@@ -547,7 +547,11 @@ function prepareSF(){
 
 						const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 						instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
-							if(!isData) return;
+							if(!isData){
+								if(isComplete && pendingHTML.length !== 0)
+									pendingHTMLSend();
+								return;
+							}
 
 							let jsMap = true, content = '', isHTML = false;
 
@@ -617,10 +621,17 @@ function prepareSF(){
 							browserSync.notify("JavaScript Reloaded");
 
 							if(isComplete && pendingHTML.length !== 0){
-								pendingHTMLSend();
 								clearTimeout(pendingHTMLTimer);
+								pendingHTMLSend();
 							}
-						}, SFInstantReload, obj.sf, true);
+						}, SFInstantReload, obj.sf, true, function(){
+							// after all completed
+
+							if(pendingHTML.length !== 0){
+								clearTimeout(pendingHTMLTimer);
+								pendingHTMLSend();
+							}
+						});
 					}catch(e){console.error(e)}
 				}
 
@@ -687,7 +698,7 @@ function sfTask(path, instance){
 				_changes.js = _changes.js || changes.js;
 				_changes.css = _changes.css || changes.css;
 
-				if(!(--isStartup.counter === 0 && timeEnd)){
+				if(--isStartup.counter !== 0 || timeEnd === false){
 					// Start the wait timer
 					clearTimeout(timeWait);
 					timeWait = setTimeout(()=> {

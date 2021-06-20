@@ -87,9 +87,9 @@ module.exports = class SFCompiler{
 
 	sourceCallbackWait = 0; // for throttling
 	afterCallbackThrottle = false;
-	sourceFinish(callback, singleCompile){
+	sourceFinish(callback, singleCompile, onComplete){
 		if(--this.sourceCallbackWait !== 0){
-			this.afterCallbackThrottle = true;
+			this.afterCallbackThrottle = 'throttled';
 			return;
 		}
 
@@ -102,12 +102,13 @@ module.exports = class SFCompiler{
 
 		if(!singleCompile)
 			this.changesCallback(callback);
+		if(onComplete) onComplete();
 	}
 
 	// Open the source, split it
 	sourceChanges = {};
 	sourcePending = {};
-	loadSource(root, path, callback, singleCompile, _opt, pending){
+	loadSource(root, path, callback, singleCompile, _opt, pending, onComplete){
 		const that = this;
 		const {cache, processing} = this;
 
@@ -119,7 +120,7 @@ module.exports = class SFCompiler{
 		try{
 			var raw = fs.readFileSync(root+path, 'utf8');
 		} catch(e){
-			that.sourceFinish(callback, singleCompile, _opt);
+			that.sourceFinish(callback, singleCompile, onComplete);
 			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
 			return;
 		}
@@ -127,7 +128,7 @@ module.exports = class SFCompiler{
 		that.sourceCallbackWait++;
 
 		if(cached !== void 0 && cached.raw !== void 0 && cached.raw === raw){
-			that.sourceFinish(callback, singleCompile, _opt);
+			that.sourceFinish(callback, singleCompile, onComplete);
 			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
 			return;
 		}
@@ -177,7 +178,7 @@ module.exports = class SFCompiler{
 
 			if(which.indexOf('comment') === 0){
 				if(++processed === content.length){
-					that.sourceFinish(callback, singleCompile, _opt);
+					that.sourceFinish(callback, singleCompile, onComplete);
 
 					if(debugging)
 						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
@@ -202,7 +203,7 @@ module.exports = class SFCompiler{
 
 			if(current.rawContent === temp){
 				if(++processed === content.length){
-					that.sourceFinish(callback, singleCompile, _opt);
+					that.sourceFinish(callback, singleCompile, onComplete);
 
 					if(singleCompile && _opt.instant)
 						callback(current, true, which, true, cached);
@@ -243,7 +244,7 @@ module.exports = class SFCompiler{
 					callback(data, true, which, isComplete, cached);
 
 				if(isComplete){
-					that.sourceFinish(callback, singleCompile);
+					that.sourceFinish(callback, singleCompile, onComplete);
 
 					if(debugging)
 						console.log("-- Skip:", which, `(${processed} / ${content.length})`);
@@ -280,7 +281,7 @@ module.exports = class SFCompiler{
 				current.path = path;
 				proc.delete(path);
 
-				if(isComplete) that.sourceFinish(callback, singleCompile);
+				if(isComplete) that.sourceFinish(callback, singleCompile, onComplete);
 			}, lines, that.options);
 
 			if(extra !== false)
