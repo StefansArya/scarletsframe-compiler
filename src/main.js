@@ -34,9 +34,9 @@ function isInCategory(cats, fence){
 // Initial script before creating combined content
 const sourceInit = {
 	js:`if(!window.templates) window.templates={};
-const _$_ = sf.dom || sf.$;
-const __tmplt = window.templates;
-const _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
+var _$_ = sf.dom || sf.$;
+var __tmplt = window.templates;
+var _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 	_replace(path,html){
 		let h = _$_(html);
 		if(this.body_map[path]) this.body_map[path].remove();
