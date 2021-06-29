@@ -18,8 +18,11 @@ module.exports = function(full, list, root){
 
 		if(list.includes('*')){
 			let path = list.split('*', 1)[0];
-			if(full.includes(path))
-				return full.replace(path, '');
+			if(full.includes(path)){
+				let temp = full.split(path);
+				temp.shift();
+				return temp.join(path);
+			}
 		}
 	}
 	else for (var i = 0; i < list.length; i++) {
@@ -31,8 +34,11 @@ module.exports = function(full, list, root){
 			continue;
 
 		let path = current.split('*', 1)[0];
-		if(full.includes(path))
-			return full.replace(path, '');
+		if(full.includes(path)){
+			let temp = full.split(path);
+			temp.shift();
+			return temp.join(path);
+		}
 	}
 
 	if(fullMatch)

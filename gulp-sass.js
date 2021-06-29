@@ -1,4 +1,4 @@
-/* Temporary copy from: https://github.com/dlmanning/gulp-sass
+/* Modified from: https://github.com/dlmanning/gulp-sass
   I may remove this file after the original repo was updated
 
   The MIT License (MIT)

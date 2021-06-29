@@ -677,7 +677,7 @@ function sfTask(path, instance){
 	let isStartup = {counter:0};
 
 	return function(){
-		obj.onCompiled && firstCompile.sf++;
+		path.onCompiled && firstCompile.sf++;
 
 		var startTime = Date.now();
 		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
@@ -734,8 +734,8 @@ function sfTask(path, instance){
 					}, 50);
 				}
 
-				if(obj.onCompiled && --firstCompile.sf === 0)
-					obj.onCompiled('SF');
+				if(path.onCompiled && --firstCompile.sf === 0)
+					path.onCompiled('SF');
 			}
 
 			for(const key in changes)

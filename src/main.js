@@ -93,15 +93,15 @@ module.exports = class SFCompiler{
 			return;
 		}
 
-		if(this.firstInit !== false){
-			clearTimeout(this.firstInitThrottle);
-			this.firstInitThrottle = setTimeout(this.changesCallback.bind(this), 500);
-			this.firstInit = callback || this.firstInit;
-			return;
+		if(!singleCompile){
+			if(this.firstInit !== false){
+				clearTimeout(this.firstInitThrottle);
+				this.firstInitThrottle = setTimeout(this.changesCallback.bind(this), 500);
+				this.firstInit = callback || this.firstInit;
+			}
+			else this.changesCallback(callback);
 		}
 
-		if(!singleCompile)
-			this.changesCallback(callback);
 		if(onComplete) onComplete();
 	}
 
@@ -119,7 +119,8 @@ module.exports = class SFCompiler{
 
 		try{
 			var raw = fs.readFileSync(root+path, 'utf8');
-		} catch(e){
+		} catch(e) {
+			console.error("Failed to read file:", root+path);
 			that.sourceFinish(callback, singleCompile, onComplete);
 			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
 			return;
@@ -348,7 +349,7 @@ module.exports = class SFCompiler{
 			}
 		}
 
-		if(which === 'js'){
+		if(which === 'js' && this.options.routes){
 			let treeDiver = createTreeDiver(map);
 			let optRoutes = this.options.routes;
 
