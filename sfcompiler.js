@@ -19,7 +19,14 @@ var firstCompile = {
 };
 
 var Exports = {
-	onInit: false
+	onInit: false,
+	importConfig(name, obj){
+		let temp = {[name]: obj};
+		watchPath('js', Exports.taskJS.addTask, temp);
+		watchPath('scss', Exports.taskSCSS.addTask, temp);
+		watchPath('html', Exports.taskHTML.addTask, temp);
+		watchPath('sf', Exports.taskSF.addTask, temp);
+	},
 };
 
 function init(only){
