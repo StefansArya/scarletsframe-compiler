@@ -27,25 +27,25 @@ function init(only){
 
 	if(!only || only === 'js'){
 		Exports.taskJS = require('./recipes/js.js')(pack);
-		watchPath('js', Exports.taskJS.addTask);
+		watchPath('js', Exports.taskJS.addTask, obj.path);
 		console.log(`[${chalk.gray('Prepared')}] .js handler`);
 	}
 
 	if(!only || only === 'css'){
 		Exports.taskSCSS = require('./recipes/scss.js')(pack);
-		watchPath('scss', Exports.taskSCSS.addTask);
+		watchPath('scss', Exports.taskSCSS.addTask, obj.path);
 		console.log(`[${chalk.gray('Prepared')}] .scss handler`);
 	}
 
 	if(!only || only === 'html'){
 		Exports.taskHTML = require('./recipes/html.js')(pack);
-		watchPath('html', Exports.taskHTML.addTask);
+		watchPath('html', Exports.taskHTML.addTask, obj.path);
 		console.log(`[${chalk.gray('Prepared')}] .html handler`);
 	}
 
 	if(!only || only === 'sf'){
 		Exports.taskSF = require('./recipes/sf.js')(pack);
-		watchPath('sf', Exports.taskSF.addTask);
+		watchPath('sf', Exports.taskSF.addTask, obj.path);
 		console.log(`[${chalk.gray('Prepared')}] .sf handler`);
 	}
 
@@ -85,7 +85,8 @@ function progressCounter(newline){
 	return false;
 }
 
-gulp.task('browser-sync', function(){
+// To be executed on Development computer
+gulp.task('default', function(){
 	init();
 
 	if(!obj.browserSync)
@@ -95,16 +96,13 @@ gulp.task('browser-sync', function(){
 		obj._compiling = true;
 
 	console.log(`[${chalk.gray('Preparing')}] BrowserSync as server`);
-	let browserSync = obj._browserSync = require('browser-sync');
+	let browserSync = require('browser-sync');
 
 	SFLang.watch();
-	browserSync = browserSync.init(obj.browserSync, function(){
+	browserSync = obj._browserSync = browserSync.init(obj.browserSync, function(){
 		require('./src/browser-cmd.js')(browserSync.sockets, collectSourcePath, obj.editor);
 	});
 });
-
-// To be executed on Development computer
-gulp.task('default', gulp.series('browser-sync'));
 
 // === Compiling Recipe ===
 // To be executed on Continuous Delivery

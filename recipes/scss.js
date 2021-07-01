@@ -1,6 +1,7 @@
 module.exports = function(pack){
 let { obj, gulp, SFLang, firstCompile } = pack;
 let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } = obj;
+let Obj = obj;
 
 let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, watchPath } = require('./_utils.js');
 var sourcemaps = require('gulp-sourcemaps');
@@ -20,7 +21,7 @@ function addTask(name, obj){
 	taskList[obj.scss.file] = gulp.task(name, scssTask(obj));
 
 	var call = gulp.series(name);
-	if(compiling === false){
+	if(Obj._compiling === false){
 		function onChange(file, stats){
 			if(!stats) return call();
 
@@ -68,7 +69,7 @@ function scssTask(path){
 
 		temp = temp.pipe(sass()).on('error', swallowError);
 
-		if(compiling){
+		if(Obj._compiling){
 			if(!csso) csso = require('gulp-csso');
 			if(!autoprefixer) autoprefixer = require('gulp-autoprefixer');
 
@@ -87,10 +88,10 @@ function scssTask(path){
 			if(obj.onCompiled && --firstCompile.css === 0)
 				obj.onCompiled('SCSS');
 
-			if(browserSync && hotReload.scss !== false){
+			if(Obj._browserSync && hotReload.scss !== false){
 				setTimeout(function(){
-					browserSync.reload(path.scss.folder+path.scss.file);
-					browserSync.notify("SCSS Reloaded");
+					Obj._browserSync.reload(path.scss.folder+path.scss.file);
+					Obj._browserSync.notify("SCSS Reloaded");
 				}, 100);
 			}
 		});

@@ -1,6 +1,7 @@
 module.exports = function(pack){
 let { obj, gulp, SFLang, firstCompile } = pack;
 let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } = obj;
+let Obj = obj;
 
 let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, watchPath } = require('./_utils.js');
 var sourcemaps = require('gulp-sourcemaps');
@@ -30,7 +31,7 @@ function addTask(name, obj){
 		console.error(".js settings only support 'combine' or 'module'");
 
 	var call = gulp.series(name);
-	if(compiling === false){
+	if(Obj._compiling === false){
 		var rootPath = obj.js.combine || obj.js.module.from;
 		if(obj.js.module !== void 0){
 			rootPath = rootPath.split('\\').join('/').split('/');
@@ -47,7 +48,7 @@ function addTask(name, obj){
 			if(SFLang.scan(file, stats))
 				return;
 
-			if(browserSync && hotReload.js === true){
+			if(Obj._browserSync && hotReload.js === true){
 				let relativePath = getRelativePathFromList(file, rootPath, obj.js.root);
 				var changed = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 
@@ -70,8 +71,8 @@ function addTask(name, obj){
 
 				changed += sourceMapBase64(map.toString());
 
-				browserSync.sockets.emit('sf-hot-js', changed);
-				browserSync.notify("JavaScript Reloaded");
+				Obj._browserSync.sockets.emit('sf-hot-js', changed);
+				Obj._browserSync.notify("JavaScript Reloaded");
 			}
 
 			call();
@@ -110,7 +111,7 @@ function jsTask(path){
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
 
-		if(compiling){
+		if(Obj._compiling){
 			if(!terser) terser = require('gulp-terser');
 			if(!babel) babel = require('gulp-babel');
 
@@ -127,8 +128,8 @@ function jsTask(path){
 				if(obj.onCompiled && --firstCompile.js === 0)
 					obj.onCompiled('JavaScript');
 
-				if(browserSync && hotReload.js === void 0)
-					browserSync.reload(path.js.folder+path.js.file);
+				if(Obj._browserSync && hotReload.js === void 0)
+					Obj._browserSync.reload(path.js.folder+path.js.file);
 			});
 
 		versioning(path.versioning, path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file+'?', startTime);
@@ -158,7 +159,7 @@ function jsTaskModule(path){
 				jm.resolve = require('@rollup/plugin-node-resolve');
 
 			var plugins = [jm.commonjs(), jm.resolve.nodeResolve()];
-			if(compiling){
+			if(Obj._compiling){
 				if(!jm.babel)
 					jm.babel = require('@rollup/plugin-babel');
 				plugins.shift(jm.babel());
@@ -175,7 +176,7 @@ function jsTaskModule(path){
 			temp = temp.pipe(sourcemaps.init());
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
-		if(!jm && compiling){
+		if(!jm && Obj._compiling){
 			if(!terser) terser = require('gulp-terser');
 
 			temp = temp.pipe(terser()).on('error', swallowError);
@@ -193,8 +194,8 @@ function jsTaskModule(path){
 				if(obj.onCompiled && --firstCompile.js === 0)
 					obj.onCompiled('JavaScript');
 
-				if(browserSync && hotReload.js === void 0)
-					browserSync.reload(path.js.folder+path.js.file);
+				if(Obj._browserSync && hotReload.js === void 0)
+					Obj._browserSync.reload(path.js.folder+path.js.file);
 			});
 
 		versioning(path.versioning, path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file+'?', startTime);

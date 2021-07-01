@@ -1,6 +1,7 @@
 module.exports = function(pack){
 let { obj, gulp, SFLang, firstCompile } = pack;
 let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } = obj;
+let Obj = obj;
 
 let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64 } = require('./_utils.js');
 var htmlmin = require('../gulp-htmlmin.js');
@@ -20,7 +21,7 @@ function addTask(name, obj){
 	taskList[obj.html.file] = gulp.task(name, htmlTask(obj));
 
 	var call = gulp.series(name);
-	if(compiling === false){
+	if(Obj._compiling === false){
 		if(obj.static !== void 0){
 			function onChange(file, stats){
 				if(!stats) return;
@@ -30,9 +31,9 @@ function addTask(name, obj){
 				last = stats.ctimeMs;
 				SFLang.scan(file, stats);
 
-				if(browserSync && hotReload.static === true){
-					browserSync.sockets.emit('sf-hot-static', file);
-					browserSync.notify("Static HTML have an update");
+				if(Obj._browserSync && hotReload.static === true){
+					Obj._browserSync.sockets.emit('sf-hot-static', file);
+					Obj._browserSync.notify("Static HTML have an update");
 				}
 			}
 
@@ -52,7 +53,7 @@ function addTask(name, obj){
 			last = stats.ctimeMs;
 			SFLang.scan(file, stats);
 
-			if(browserSync && hotReload.html === true){
+			if(Obj._browserSync && hotReload.html === true){
 				file = file.split('\\').join('/');
 				var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 				content = content.replace(/\r/g, "");
@@ -64,8 +65,8 @@ function addTask(name, obj){
 
 				content = `window.templates['${file}'] = ${JSON.stringify(content)};window.templates=window.templates`;
 
-				browserSync.sockets.emit('sf-hot-html', content);
-				browserSync.notify("HTML Reloaded");
+				Obj._browserSync.sockets.emit('sf-hot-html', content);
+				Obj._browserSync.notify("HTML Reloaded");
 			}
 
 			call();

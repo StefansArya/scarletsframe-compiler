@@ -1,13 +1,14 @@
 module.exports = function(pack){
 let { obj, gulp, SFLang, firstCompile } = pack;
 let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } = obj;
+let Obj = obj;
 
 let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, watchPath } = require('./_utils.js');
 var sfExt = require('../gulp-sf-ext.js');
 var fs = require('fs');
 var chalk = require('chalk');
 const { SourceMapGenerator } = require('source-map');
-var getRelativePathFromList = require('./sf-relative-path.js');
+var getRelativePathFromList = require('../sf-relative-path.js');
 
 const SFCompiler = require('../src/main.js');
 const SFCompilerHelper = require('../src/helper.js');
@@ -37,7 +38,7 @@ function addTask(name, obj){
 
 	const instance = new SFCompiler({
 		htmlPrefix: obj.sf.prefix || '',
-		minify: compiling,
+		minify: Obj._compiling,
 		srcPath: _getSrcPath,
 		routes: hasRoutes && {}
 	});
@@ -46,21 +47,21 @@ function addTask(name, obj){
 	taskList[obj.sf.file] = gulp.task(name, sfTask(obj, instance));
 
 	var call = gulp.series(name);
-	if(compiling === false){
+	if(Obj._compiling === false){
 		var basePath = obj.sf.opt.base+'/';
 		function onChange(file, stats){
 			if(last === stats.ctimeMs)
 				return;
 
 			last = stats.ctimeMs;
-			if(browserSync && hotReload.sf === true){
+			if(Obj._browserSync && hotReload.sf === true){
 				file = file.split('\\').join('/');
 				try{
 					let pendingHTML = [];
 					let pendingHTMLTimer = false;
 					let pendingHTMLSend = ()=> {
-						browserSync.sockets.emit('sf-hot-js', pendingHTML.join(';'));
-						browserSync.notify("HTML Reloaded");
+						Obj._browserSync.sockets.emit('sf-hot-js', pendingHTML.join(';'));
+						Obj._browserSync.notify("HTML Reloaded");
 						pendingHTML.length = 0;
 					};
 
@@ -136,8 +137,8 @@ function addTask(name, obj){
 							return;
 						}
 
-						browserSync.sockets.emit('sf-hot-js', content);
-						browserSync.notify("JavaScript Reloaded");
+						Obj._browserSync.sockets.emit('sf-hot-js', content);
+						Obj._browserSync.notify("JavaScript Reloaded");
 
 						if(isComplete && pendingHTML.length !== 0){
 							clearTimeout(pendingHTMLTimer);
@@ -201,7 +202,7 @@ function sfTask(path, instance){
 		var startTime = Date.now();
 		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
 
-		const options = compiling ? {autoprefixer:true, minify:true} : {};
+		const options = Obj._compiling ? {autoprefixer:true, minify:true} : {};
 		options._opt = path.sf;
 
 		let sfExtOption = {instance, onFinish, options, data:isStartup};
@@ -246,10 +247,10 @@ function sfTask(path, instance){
 				if(includeSourceMap)
 					fs.writeFileSync(`${sourceRoot}${distName}.${which}.map`, map);
 
-				if(browserSync && hotReload.scss !== false && which === 'css'){
+				if(Obj._browserSync && hotReload.scss !== false && which === 'css'){
 					setTimeout(function(){
-						browserSync.reload(`${sourceRoot}${distName}.${which}`);
-						browserSync.notify("CSS Reloaded");
+						Obj._browserSync.reload(`${sourceRoot}${distName}.${which}`);
+						Obj._browserSync.notify("CSS Reloaded");
 					}, 50);
 				}
 
