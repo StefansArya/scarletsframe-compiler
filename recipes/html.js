@@ -18,10 +18,12 @@ function addTask(name, obj){
 	var last = 0;
 
 	name = 'html-'+name;
-	taskList[obj.html.file] = gulp.task(name, htmlTask(obj));
+	gulp.task(name, htmlTask(obj));
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
+		let hasObjStatic;
+
 		if(obj.static !== void 0){
 			function onChange(file, stats){
 				if(!stats) return;
@@ -37,7 +39,7 @@ function addTask(name, obj){
 				}
 			}
 
-			gulp.watch(obj.static)
+			hasObjStatic = gulp.watch(obj.static)
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 
@@ -72,9 +74,11 @@ function addTask(name, obj){
 			call();
 		}
 
-		gulp.watch(obj.html.combine)
+		let _task = taskList[obj.html.file] = gulp.watch(obj.html.combine)
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
+
+		_task.hasObjStatic = hasObjStatic;
 
 		var isExist = obj.html;
 		isExist = fs.existsSync(isExist.folder+isExist.file);
@@ -123,7 +127,10 @@ function htmlTask(path){
 }
 
 function removeTask(obj){
-	// taskList[obj.scss.file]
+	let temp = taskList[obj.html.file];
+
+	temp.close();
+	if(temp.hasObjStatic) temp.hasObjStatic.close();
 }
 
 return { addTask, removeTask };

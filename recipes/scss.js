@@ -18,7 +18,8 @@ function addTask(name, obj){
 	var last = 0;
 
 	name = 'scss-'+name;
-	taskList[obj.scss.file] = gulp.task(name, scssTask(obj));
+
+	gulp.task(name, scssTask(obj));
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
@@ -32,7 +33,7 @@ function addTask(name, obj){
 			call();
 		}
 
-		gulp.watch(obj.scss.combine)
+		taskList[obj.scss.file] = gulp.watch(obj.scss.combine)
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 
@@ -102,7 +103,7 @@ function scssTask(path){
 }
 
 function removeTask(obj){
-	// taskList[obj.scss.file]
+	taskList[obj.scss.file].close();
 }
 
 return { addTask, removeTask };

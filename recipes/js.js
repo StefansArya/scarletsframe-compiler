@@ -24,9 +24,9 @@ function addTask(name, obj){
 		obj.js.folder += '/';
 
 	if(obj.js.combine)
-		taskList[obj.js.file] = gulp.task(name, jsTask(obj));
+		gulp.task(name, jsTask(obj));
 	else if(obj.js.module)
-		taskList[obj.js.file] = gulp.task(name, jsTaskModule(obj));
+		gulp.task(name, jsTaskModule(obj));
 	else
 		console.error(".js settings only support 'combine' or 'module'");
 
@@ -78,7 +78,7 @@ function addTask(name, obj){
 			call();
 		}
 
-		gulp.watch(rootPath)
+		taskList[obj.js.file] = gulp.watch(rootPath)
 			.on('add', onChange)
 			.on('change', onChange)
 			.on('unlink', onChange)
@@ -204,7 +204,7 @@ function jsTaskModule(path){
 }
 
 function removeTask(obj){
-	// taskList[obj.scss.file]
+	taskList[obj.js.file].close();
 }
 
 return { addTask, removeTask };

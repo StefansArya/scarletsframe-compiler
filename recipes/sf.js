@@ -44,7 +44,8 @@ function addTask(name, obj){
 	});
 
 	name = 'sf-'+name;
-	taskList[obj.sf.file] = gulp.task(name, sfTask(obj, instance));
+
+	gulp.task(name, sfTask(obj, instance));
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
@@ -171,7 +172,7 @@ function addTask(name, obj){
 			}
 		}
 
-		gulp.watch(obj.sf.combine, obj.sf.opt)
+		taskList[obj.sf.file] = gulp.watch(obj.sf.combine, obj.sf.opt)
 			.on('add', onChange).on('change', onChange).on('unlink', onRemove)
 			.on('error', console.error);
 
@@ -267,7 +268,7 @@ function sfTask(path, instance){
 }
 
 function removeTask(obj){
-	// taskList[obj.scss.file]
+	taskList[obj.sf.file].close();
 }
 
 return { addTask, removeTask };
