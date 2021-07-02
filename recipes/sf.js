@@ -3,7 +3,7 @@ let { obj, gulp, SFLang, firstCompile } = pack;
 let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } = obj;
 let Obj = obj;
 
-let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, watchPath } = require('./_utils.js');
+let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, watchPath, preprocessPath, indexAutoLoad } = require('./_utils.js');
 var sfExt = require('../gulp-sf-ext.js');
 var fs = require('fs');
 var chalk = require('chalk');
@@ -46,6 +46,11 @@ function addTask(name, obj){
 	name = 'sf-'+name;
 
 	gulp.task(name, sfTask(obj, instance));
+
+	if(obj.autoGenerate){
+		indexAutoLoad(obj, 'sf', 'CSS');
+		indexAutoLoad(obj, 'sf', 'JS');
+	}
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
@@ -268,7 +273,24 @@ function sfTask(path, instance){
 }
 
 function removeTask(obj){
+	preprocessPath('unknown', obj, 'sf');
 	taskList[obj.sf.file].close();
+
+	if(obj.autoGenerate){
+		if(!obj.versioning)
+			throw ".autoGenerate property was found, but .versioning was not found";
+
+		let temp = obj.autoGenerate.split('**')[0];
+		let data = fs.readFileSync(obj.versioning, 'utf8');
+
+		data = data.split(temp+obj.sf.file+'.js?');
+		data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
+
+		data = data.join('').split(temp+obj.sf.file+'.css?');
+		data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
+
+		fs.writeFileSync(obj.versioning, data.join(''), 'utf8');
+	}
 }
 
 return { addTask, removeTask };

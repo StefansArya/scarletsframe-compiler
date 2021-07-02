@@ -4,9 +4,10 @@ if(!obj.hotReload) obj.hotReload = {};
 let { startupCompile } = obj;
 
 // Load dependency
-let { collectSourcePath, watchPath } = require('./recipes/_utils.js');
+let { collectSourcePath, watchPath, preprocessPath } = require('./recipes/_utils.js');
 var SFLang = require('./sf-lang')(obj.translate);
 var chalk = require('chalk');
+var fs = require('fs');
 
 obj._browserSync = false; // lazy init to improve startup performance
 
@@ -20,6 +21,14 @@ var firstCompile = {
 
 var Exports = {
 	onInit: false,
+	clearGenerateImport(htmlPath){
+		let data = fs.readFileSync(htmlPath, 'utf8');
+		data = data
+			.replace(/(?<=\/\/\#SF\-CSS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-CSS\-END)/s, '')
+			.replace(/(?<=\/\/\#SF\-JS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-JS\-END)/s, '');
+
+		fs.writeFileSync(htmlPath, data, 'utf8');
+	},
 	importConfig(name, obj){
 		let temp = {[name]: obj};
 		watchPath('js', Exports.taskJS.addTask, temp);
@@ -27,10 +36,18 @@ var Exports = {
 		watchPath('html', Exports.taskHTML.addTask, temp);
 		watchPath('sf', Exports.taskSF.addTask, temp);
 	},
+	deleteConfig(obj){
+		// Currently this will only unwatch for file change
+		obj.js && Exports.taskJS.removeTask(obj);
+		(obj.scss || obj.sass) && Exports.taskSCSS.removeTask(obj);
+		obj.html && Exports.taskHTML.removeTask(obj);
+		obj.sf && Exports.taskSF.removeTask(obj);
+	},
 };
 
 function init(only){
 	let pack = { obj, gulp, SFLang, firstCompile };
+	obj.beforeInit && obj.beforeInit();
 
 	if(!only || only === 'js'){
 		Exports.taskJS = require('./recipes/js.js')(pack);

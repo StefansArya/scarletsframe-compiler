@@ -46,6 +46,7 @@ module.exports = {
 	sourceMapBase64(str){
 		return '\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,' + Buffer.from(str).toString('base64');
 	},
+	preprocessPath,
 	watchPath(which, watch, path){
 		var default_ = path.default;
 		delete path.default;
@@ -55,7 +56,7 @@ module.exports = {
 			if(temp[which] === void 0)
 				continue;
 
-			watchPath_(key, temp, which);
+			preprocessPath(key, temp, which);
 			watch(key, temp);
 		}
 
@@ -64,11 +65,36 @@ module.exports = {
 			if(default_[which] === void 0)
 				return;
 
-			watchPath_('default', default_, which);
+			preprocessPath('default', default_, which);
 			path.default = default_;
 			watch('default', default_);
 		}
 	},
+	indexAutoLoad(obj, which, placement){
+		if(!obj.versioning)
+			throw ".versioning property was not found";
+
+		let file = obj[which].file;
+		if(which === 'sf')
+			file += '.'+placement.toLowerCase();
+
+		let temp = obj.autoGenerate.split('**');
+		temp[0] += file;
+		let data = fs.readFileSync(obj.versioning, 'utf8');
+
+		if(data.includes(temp[0])) return;
+		temp = temp[0]+'?'+Date.now()+temp[1]+'\n';
+
+		if(data.includes(`//#SF-${placement}-BEGIN`) === false)
+			return console.log(`'//#SF-${placement}-BEGIN' and '//#SF-${placement}-END' comment was not found on '${obj.versioning}'`);
+
+		// Get line space
+		let space = data.split(`//#SF-${placement}-BEGIN`)[0].split('\n');
+		space = space[space.length-1];
+
+		data = data.replace(`//#SF-${placement}-END`, `${temp}${space}//#SF-${placement}-END`);
+		fs.writeFileSync(obj.versioning, data, 'utf8');
+	}
 };
 
 
@@ -86,7 +112,7 @@ function checkIncompatiblePath(name, obj){
 		console.error("[Paths: "+name+"] 'Less' compiler haven't been supported yet, use SCSS instead..");
 }
 
-function watchPath_(key, temp, which){
+function preprocessPath(key, temp, which){
 	// Check if default was exist
 	// if(temp && temp[which])
 	// 	temp[which].combine = excludeSource(temp[which].combine, temp[which].combine);
