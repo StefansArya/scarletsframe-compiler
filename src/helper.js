@@ -74,13 +74,13 @@ module.exports = {
 								if(route._routerJS === void 0)
 									code += `{path: ${JSON.stringify(route.router.path)}, html: ${route.content}`;
 								else
-									code += content.replace('{', '{path:'+JSON.stringify(route.path)+',').slice(0, -1);
+									code += route.content.replace('{', '{path:'+JSON.stringify(route.path)+',').slice(0, -1);
 							}
 							else{
 								route = routes[key];
 								if(route._routerJS === void 0)
 									code += `{path: `;
-								else content.replace('{', `{path: `);
+								else route.content.replace('{', `{path: `);
 
 								if(parent === 'index')
 									parent = '';
