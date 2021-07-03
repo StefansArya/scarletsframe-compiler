@@ -94,9 +94,8 @@ module.exports = {
 							code += ']},';
 						}
 						else{
-							if(insideOfView){
-								return console.log("Views '"+view+"'must be placed on the /routes root folder, or relative with other page routes (page+"+view+").");
-							}
+							if(insideOfView)
+								throw "Views '"+view+"'must be placed on the /routes root folder, or relative with other page routes (page+"+view+").";
 
 							insideOfView = true;
 							code += `sf.Views._$edit(${view}, [`;
