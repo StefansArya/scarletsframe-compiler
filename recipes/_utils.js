@@ -1,6 +1,7 @@
 var fs = require('fs');
 var collectSourcePath = {};
 
+let startupTime = Date.now();
 module.exports = {
 	collectSourcePath,
 	getRelativePath(basePath, file){ // deprecate
@@ -83,7 +84,7 @@ module.exports = {
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
 		if(data.includes(temp[0])) return;
-		temp = temp[0]+'?'+Date.now()+temp[1]+'\n';
+		temp = temp[0]+'?'+startupTime+temp[1]+'\n';
 
 		if(data.includes(`//#SF-${placement}-BEGIN`) === false)
 			return console.log(`'//#SF-${placement}-BEGIN' and '//#SF-${placement}-END' comment was not found on '${obj.versioning}'`);

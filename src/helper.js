@@ -74,7 +74,7 @@ module.exports = {
 								if(route._routerJS === void 0)
 									code += `{path: ${JSON.stringify(route.router.path)}, html: ${route.content}`;
 								else
-									code += route.content.replace('{', '{path:'+JSON.stringify(route.path)+',').slice(0, -1);
+									code += route.content.replace('{', '{path:'+JSON.stringify(route.router.path)+',').slice(0, -1);
 							}
 							else{
 								route = routes[key];
