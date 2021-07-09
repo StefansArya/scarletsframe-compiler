@@ -10,10 +10,19 @@ module.exports = function(path, content, callback, offset, options){
 	// Don't minify the HTML on development mode
 	// because it may be used for modifying from the browser
 
-	const html = JSON.stringify(!options.minify
-		? content
-		: htmlmin.minify(content, { collapseWhitespace: true })
-	).split('{{ ').join('{{').split(' }}').join('}}');
+	if(options.minify){
+		content = content.replace(/{{[\s\S]*?}}/g, function(full){
+			return full.split('<').join('*%1#').split('>').join('*%2#');
+		});
+
+		content = htmlmin.minify(content, {
+			collapseWhitespace: true
+		}).replace(/\*%[12]#/g, function(full){
+			return full === '*%1#' ? '<' : '>';
+		});
+	}
+
+	const html = JSON.stringify(content).split('{{ ').join('{{').split(' }}').join('}}');
 
 	let prefix = options.htmlPrefix || '';
 	if(options.htmlPrefix) prefix += '/';

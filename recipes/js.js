@@ -128,18 +128,18 @@ function jsTask(path){
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
 
-		if(Obj._compiling){
-			if(!terser) terser = require('gulp-terser');
-			if(!babel) babel = require('gulp-babel');
-
-			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
-		}
-
 		if(path.js.wrapped !== void 0){
 			if(path.js.wrapped === true)
 				temp = temp.pipe(mergeWrapper(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
 				temp = temp.pipe(mergeWrapper(JSWrapper.async));
+		}
+
+		if(Obj._compiling){
+			if(!terser) terser = require('gulp-terser');
+			if(!babel) babel = require('gulp-babel');
+
+			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
 		}
 
 		if(path.js.header)
@@ -200,17 +200,18 @@ function jsTaskModule(path){
 			temp = temp.pipe(sourcemaps.init());
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
-		if(!jm && Obj._compiling){
-			if(!terser) terser = require('gulp-terser');
-
-			temp = temp.pipe(terser()).on('error', swallowError);
-		}
 
 		if(path.js.wrapped !== void 0){
 			if(path.js.wrapped === true)
 				temp = temp.pipe(mergeWrapper(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
 				temp = temp.pipe(mergeWrapper(JSWrapper.async));
+		}
+
+		if(!jm && Obj._compiling){
+			if(!terser) terser = require('gulp-terser');
+
+			temp = temp.pipe(terser()).on('error', swallowError);
 		}
 
 		if(path.js.header)
