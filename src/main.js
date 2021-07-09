@@ -2,6 +2,7 @@ var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 const {createTreeDiver} = require('./helper.js');
+const JSWrapper = require('./js-wrapper.js');
 // var mergeMap = require('merge-source-map');
 var debugging = false;
 
@@ -53,7 +54,6 @@ var _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 };`.split('\n').join('').split('\t').join(''), // make it one line
 	css:''
 };
-
 
 // ========================================
 
@@ -349,17 +349,24 @@ module.exports = class SFCompiler{
 			}
 		}
 
-		if(which === 'js' && this.options.routes){
-			let treeDiver = createTreeDiver(map);
-			let optRoutes = this.options.routes;
+		if(which === 'js'){
+			if(this.options.routes){
+				let treeDiver = createTreeDiver(map);
+				let optRoutes = this.options.routes;
 
-			if(optRoutes._$cache === void 0){
-				treeDiver.route(optRoutes);
-				optRoutes._$cache = treeDiver.getCode();
+				if(optRoutes._$cache === void 0){
+					treeDiver.route(optRoutes);
+					optRoutes._$cache = treeDiver.getCode();
+				}
+
+				code += optRoutes._$cache;
+				treeDiver.mapRoute(optRoutes);
 			}
 
-			code += optRoutes._$cache;
-			treeDiver.mapRoute(optRoutes);
+			if(options._opt.wrapped === true)
+				code = JSWrapper.true.join(code);
+			else if(options._opt.wrapped === 'async')
+				code = JSWrapper.async.join(code);
 		}
 
 		const mappingURL = `${distName}.${which}`;
