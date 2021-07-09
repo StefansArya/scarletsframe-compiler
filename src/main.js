@@ -369,6 +369,9 @@ module.exports = class SFCompiler{
 				code = JSWrapper.async.join(code);
 		}
 
+		if(options._opt.header !== void 0)
+			code = options._opt.header + '\n' + code;
+
 		const mappingURL = `${distName}.${which}`;
 		const sourceMapURL = which === 'js'
 			? `//# sourceMappingURL=${mappingURL}.map`

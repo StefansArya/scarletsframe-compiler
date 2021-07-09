@@ -10,9 +10,23 @@ var header = require('gulp-header');
 var fs = require('fs');
 var chalk = require('chalk');
 const { SourceMapGenerator } = require('source-map');
+const JSWrapper = require('../src/js-wrapper.js');
 var getRelativePathFromList = require('../sf-relative-path.js');
 var terser = null;
 var babel = null;
+
+var through = require('through2');
+function mergeWrapper(wrapper){
+	return through.obj(function(file, encoding, callback){
+		file.contents = Buffer.concat([
+			Buffer.from(wrapper[0]),
+			file.contents,
+			Buffer.from(wrapper[1])
+		]);
+
+		callback(null, file);
+	});
+}
 
 var taskList = {};
 function addTask(name, obj){
@@ -121,6 +135,13 @@ function jsTask(path){
 			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
 		}
 
+		if(path.js.wrapped !== void 0){
+			if(path.js.wrapped === true)
+				temp = temp.pipe(mergeWrapper(JSWrapper.true));
+			else if(path.js.wrapped === 'async')
+				temp = temp.pipe(mergeWrapper(JSWrapper.async));
+		}
+
 		if(path.js.header)
 			temp = temp.pipe(header(path.js.header+"\n"));
 
@@ -183,6 +204,13 @@ function jsTaskModule(path){
 			if(!terser) terser = require('gulp-terser');
 
 			temp = temp.pipe(terser()).on('error', swallowError);
+		}
+
+		if(path.js.wrapped !== void 0){
+			if(path.js.wrapped === true)
+				temp = temp.pipe(mergeWrapper(JSWrapper.true));
+			else if(path.js.wrapped === 'async')
+				temp = temp.pipe(mergeWrapper(JSWrapper.async));
 		}
 
 		if(path.js.header)
