@@ -4,7 +4,6 @@ let { startupCompile, path, includeSourceMap, hotSourceMapContent, hotReload } =
 let Obj = obj;
 
 let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64, preprocessPath, indexAutoLoad } = require('./_utils.js');
-var htmlmin = require('../gulp-htmlmin.js');
 var sourcemaps = require('gulp-sourcemaps');
 var concat = require('gulp-concat');
 var htmlToJs = require('gulp-html-to-js');
@@ -12,6 +11,25 @@ var header = require('gulp-header');
 var fs = require('fs');
 var chalk = require('chalk');
 var getRelativePathFromList = require('../sf-relative-path.js');
+
+const htmlmin = require('html-minifier');
+var through = require('through2');
+function minifyHTML(){
+	return through.obj(function(file, encoding, callback){
+		let content = file.contents.toString('utf8').replace(/{{[\s\S]*?}}/g, function(full){
+			return full.replace(/\/\/.*?$/gm, '').split('<').join('*%1#').split('>').join('*%2#');
+		});
+
+		content = htmlmin.minify(content, {
+			collapseWhitespace: true
+		}).replace(/\*%[12]#/g, function(full){
+			return full === '*%1#' ? '<' : '>';
+		});
+
+		file.contents = Buffer.from(content);
+		callback(null, file);
+	});
+}
 
 var taskList = {};
 function addTask(name, obj){
@@ -114,7 +132,7 @@ function htmlTask(path){
 			src = src.pipe(sourcemaps.init());
 
 		if(path.html.whitespace !== true)
-			src = src.pipe(htmlmin({ collapseWhitespace: true }));
+			src = src.pipe(minifyHTML());
 
 		src = src.pipe(htmlToJs({global:'window.templates', concat:path.html.file, prefix:path.html.prefix}))
 			.pipe(header(((path.html.header || '')+"\n") + "\nif(window.templates === void 0)"))

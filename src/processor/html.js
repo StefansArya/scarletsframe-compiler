@@ -12,7 +12,7 @@ module.exports = function(path, content, callback, offset, options){
 
 	if(options.minify){
 		content = content.replace(/{{[\s\S]*?}}/g, function(full){
-			return full.split('<').join('*%1#').split('>').join('*%2#');
+			return full.replace(/\/\/.*?$/gm, '').split('<').join('*%1#').split('>').join('*%2#');
 		});
 
 		content = htmlmin.minify(content, {
