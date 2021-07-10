@@ -77,10 +77,19 @@ function init(only){
 	progressCounter(true);
 }
 
+let hasProgress = false;
 function progressCounter(newline){
-	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0)
+	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0){
+		if(hasProgress){
+			console.log("Finished, terminating in 5 second if not closed");
+			setTimeout(function(){
+				process.exit();
+			}, 5000);
+		}
 		return true;
+	}
 
+	hasProgress = true;
 	process.stdout.write("Compiling: ");
 	var notFirst = false;
 
@@ -98,11 +107,13 @@ function progressCounter(newline){
 	if(firstCompile.html > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.html+" HTML");
+		notFirst = true;
 	}
 
 	if(firstCompile.sf > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.sf+" SF");
+		notFirst = true;
 	}
 
 	process.stdout.write(newline ? "\n" : "\r");
