@@ -195,6 +195,7 @@ function addTask(name, obj){
 	else call();
 }
 
+let unfinishedTask = new WeakSet();
 function sfTask(path, instance){
 	var folderLastPath = path.sf.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
@@ -202,7 +203,12 @@ function sfTask(path, instance){
 
 	let isStartup = {counter:0};
 
-	return function(){
+	return function(done){
+		if(unfinishedTask.has(path)){
+			console.log("Similar task still unfinished, this new task will be dropped. Please trigger again after previous task was finished.");
+			return done();
+		}
+
 		path.onCompiled && firstCompile.sf++;
 
 		var startTime = Date.now();
@@ -240,6 +246,8 @@ function sfTask(path, instance){
 				delete sfExtOption.data;
 			}
 
+			unfinishedTask.delete(path);
+
 			if(process.env.debug)
 				console.log(1, changes);
 
@@ -268,6 +276,7 @@ function sfTask(path, instance){
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
+		unfinishedTask.add(path);
 		return gulp.src(path.sf.combine).pipe(sfExt(sfExtOption));
 	}
 }
