@@ -99,7 +99,7 @@ module.exports = {
 
 							insideOfView = true;
 							code += `sf.Views._$edit(${view}, [`;
-							if(routes['index.sf'] === void 0)
+							if(routes[key]['index.sf'] === void 0)
 								code += '{path:"/", html:"\'index.sf\' was not found"},';
 
 							diveRoute(routes[key]);
