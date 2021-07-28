@@ -26,7 +26,7 @@ function JSWrapperMerge(wrapper, es6Module){
 		];
 
 		if(es6Module) temp.unshift(JSWrapper._exports);
-		file.contents = Buffer.concat(temp.join(''));
+		file.contents = Buffer.concat(temp);
 
 		callback(null, file);
 	});
