@@ -55,6 +55,10 @@ var _sf_internal = window._sf_internal = window._sf_internal || {body_map:{},
 	css:''
 };
 
+function JSWrapperMerge(wrapper, code){
+	return wrapper[0] + JSWrapper._imports + code +	wrapper[1];
+}
+
 // ========================================
 
 module.exports = class SFCompiler{
@@ -364,9 +368,9 @@ module.exports = class SFCompiler{
 			}
 
 			if(options._opt.wrapped === true)
-				code = JSWrapper.true.join(code);
+				code = JSWrapperMerge(JSWrapper.true, code);
 			else if(options._opt.wrapped === 'async')
-				code = JSWrapper.async.join(code);
+				code = JSWrapperMerge(JSWrapper.async, code);
 		}
 
 		if(options._opt.header !== void 0)
