@@ -87,9 +87,15 @@ function scssTask(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.write('.'));
 
+		var location = path.scss.folder.replace(path.stripURL || '#$%!.', '')+path.scss.file;
+		versioning(path.versioning, location+'?', startTime);
+
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.css === 0)
 				obj.onCompiled('SCSS');
+
+			path.onFinish && path.onFinish('SCSS', location);
+			path.scss.onFinish && path.scss.onFinish(location);
 
 			if(Obj._browserSync && hotReload.scss !== false){
 				setTimeout(function(){
@@ -99,7 +105,6 @@ function scssTask(path){
 			}
 		});
 
-		versioning(path.versioning, path.scss.folder.replace(path.stripURL || '#$%!.', '')+path.scss.file+'?', startTime);
 		return temp;
 	}
 }

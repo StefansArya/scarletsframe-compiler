@@ -212,7 +212,9 @@ function sfTask(path, instance){
 		path.onCompiled && firstCompile.sf++;
 
 		var startTime = Date.now();
-		versioning(path.versioning, path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file+'?', startTime);
+
+		var location = path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file;
+		versioning(path.versioning, location+'?', startTime);
 
 		const options = Obj._compiling ? {autoprefixer:true, minify:true} : {};
 		options._opt = path.sf;
@@ -270,6 +272,9 @@ function sfTask(path, instance){
 
 				if(path.onCompiled && --firstCompile.sf === 0)
 					path.onCompiled('SF');
+
+				path.onFinish && path.onFinish('SF', location);
+				path.sf.onFinish && path.sf.onFinish(location);
 			}
 
 			for(const key in changes)

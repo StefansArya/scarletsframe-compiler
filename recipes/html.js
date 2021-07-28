@@ -124,7 +124,8 @@ function htmlTask(path){
 		obj.onCompiled && firstCompile.html++;
 
 		var startTime = Date.now();
-		versioning(path.versioning, path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file+'?', startTime);
+		var location = path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file;
+		versioning(path.versioning, location+'?', startTime);
 
 		var src = gulp.src(path.html.combine);
 
@@ -141,9 +142,12 @@ function htmlTask(path){
 			src = src.pipe(sourcemaps.write('.'));
 
 		return src.pipe(gulp.dest(path.html.folder)).on('end', function(){
-				if(obj.onCompiled && --firstCompile.html === 0)
-					obj.onCompiled('HTML');
-			});
+			if(obj.onCompiled && --firstCompile.html === 0)
+				obj.onCompiled('HTML');
+
+			path.onFinish && path.onFinish('HTML', location);
+			path.html.onFinish && path.html.onFinish(location);
+		});
 	}
 }
 

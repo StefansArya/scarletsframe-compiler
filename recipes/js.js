@@ -16,13 +16,17 @@ var terser = null;
 var babel = null;
 
 var through = require('through2');
-function mergeWrapper(wrapper){
+function JSWrapperMerge(wrapper, es6Module){
 	return through.obj(function(file, encoding, callback){
-		file.contents = Buffer.concat([
+		let temp = [
 			Buffer.from(wrapper[0]),
+			Buffer.from(JSWrapper._imports),
 			file.contents,
 			Buffer.from(wrapper[1])
-		]);
+		];
+
+		if(es6Module) temp.unshift(JSWrapper._exports);
+		file.contents = Buffer.concat(temp.join(''));
 
 		callback(null, file);
 	});
@@ -130,9 +134,9 @@ function jsTask(path){
 
 		if(path.js.wrapped !== void 0){
 			if(path.js.wrapped === true)
-				temp = temp.pipe(mergeWrapper(JSWrapper.true));
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
-				temp = temp.pipe(mergeWrapper(JSWrapper.async));
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 		}
 
 		if(Obj._compiling){
@@ -148,15 +152,20 @@ function jsTask(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.write('.'));
 
+		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
+		versioning(path.versioning, location+'?', startTime);
+
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
-				if(obj.onCompiled && --firstCompile.js === 0)
-					obj.onCompiled('JavaScript');
+			if(obj.onCompiled && --firstCompile.js === 0)
+				obj.onCompiled('JavaScript');
 
-				if(Obj._browserSync && hotReload.js === void 0)
-					Obj._browserSync.reload(path.js.folder+path.js.file);
-			});
+			path.onFinish && path.onFinish('JavaScript', location);
+			path.js.onFinish && path.js.onFinish(location);
 
-		versioning(path.versioning, path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file+'?', startTime);
+			if(Obj._browserSync && hotReload.js === void 0)
+				Obj._browserSync.reload(path.js.folder+path.js.file);
+		});
+
 		return temp;
 	}
 }
@@ -203,9 +212,9 @@ function jsTaskModule(path){
 
 		if(path.js.wrapped !== void 0){
 			if(path.js.wrapped === true)
-				temp = temp.pipe(mergeWrapper(JSWrapper.true));
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
-				temp = temp.pipe(mergeWrapper(JSWrapper.async));
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 		}
 
 		if(!jm && Obj._compiling){
@@ -220,17 +229,22 @@ function jsTaskModule(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.mapSources(function(sourcePath, file) {
 		        return path.js.folder + sourcePath;
-		    })).pipe(sourcemaps.write('.'))
+		    })).pipe(sourcemaps.write('.'));
+
+		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
+		versioning(path.versioning, location+'?', startTime);
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
-				if(obj.onCompiled && --firstCompile.js === 0)
-					obj.onCompiled('JavaScript');
+			if(obj.onCompiled && --firstCompile.js === 0)
+				obj.onCompiled('JavaScript');
 
-				if(Obj._browserSync && hotReload.js === void 0)
-					Obj._browserSync.reload(path.js.folder+path.js.file);
-			});
+			path.onFinish || path.onFinish('JavaScript', location);
+			path.js.onFinish && path.js.onFinish(location);
 
-		versioning(path.versioning, path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file+'?', startTime);
+			if(Obj._browserSync && hotReload.js === void 0)
+				Obj._browserSync.reload(path.js.folder+path.js.file);
+		});
+
 		return temp;
 	}
 }
