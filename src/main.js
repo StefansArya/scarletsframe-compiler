@@ -320,6 +320,11 @@ module.exports = class SFCompiler{
 		var code = sourceInit[which];
 		var currentLines = 1;
 
+		if(options._opt.header !== void 0){
+			code = options._opt.header + '\n' + code;
+			currentLines = options._opt.header.split('\n').length;
+		}
+
 		var map = new SourceMapGenerator({
 			file: `${distName}.${which}`
 		});
@@ -372,9 +377,6 @@ module.exports = class SFCompiler{
 			else if(options._opt.wrapped === 'async')
 				code = JSWrapperMerge(JSWrapper.async, code);
 		}
-
-		if(options._opt.header !== void 0)
-			code = options._opt.header + '\n' + code;
 
 		const mappingURL = `${distName}.${which}`;
 		const sourceMapURL = which === 'js'

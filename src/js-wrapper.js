@@ -1,12 +1,12 @@
 module.exports = {
 	'true': [";(function(window, module){'use strict';", `})(
 		typeof window !== 'undefined' ? window : this,
-		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/, ''),
+		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
 	'async': [";(async function(window, module){'use strict';", `})(
 		typeof window !== 'undefined' ? window : this,
-		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/, ''),
+		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
 	'es6-function': ["if(typeof window === 'undefined'){var window = this}; async function _init_(){'use strict'; let module = {exports:{}};", ';return module.exports}; export default _init_;'], // Don't change the '_init_'
@@ -18,5 +18,5 @@ module.exports = {
 	};
 	imports.task = function(){
 		return typeof sf !== 'undefined' && sf.loader !== void 0 ? sf.loader.task : null
-	};`.replace(/[\n\t]+/, ''),
+	};`.replace(/[\n\t]+/g, ''),
 };
