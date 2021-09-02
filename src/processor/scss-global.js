@@ -14,7 +14,11 @@ module.exports = function(path, content, callback, offset, options){
 		includePaths: [path.directory],
 		sourceMap: 'nyam' // /*# sourceMappingURL=nyam */
 	}, async function(err, result){
-		if(err) throw err;
+		if(err){
+			callback({content:'', lines:1, map:[]});
+			return console.error(err);
+		}
+
 		const consumer = await new SourceMapConsumer(result.map.toString('utf8'));
 
 		var map = [];
