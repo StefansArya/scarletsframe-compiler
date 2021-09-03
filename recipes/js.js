@@ -32,6 +32,19 @@ function JSWrapperMerge(wrapper, es6Module){
 	});
 }
 
+function footer(text){
+	return through.obj(function(file, encoding, callback){
+		if(file.extname !== '.map'){
+			file.contents = Buffer.concat([
+				file.contents,
+				Buffer.from(text)
+			]);
+		}
+
+		callback(null, file);
+	});
+}
+
 var taskList = {};
 function addTask(name, obj){
 	var last = 0;
@@ -160,6 +173,9 @@ function jsTask(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.write('.'));
 
+		if(/\.mjs$/m.test(path.js.file))
+			temp = temp.pipe(footer('\n//# sourceMappingURL='+path.js.file+'.map'));
+
 		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
 		versioning(path.versioning, location+'?', startTime);
 
@@ -242,6 +258,9 @@ function jsTaskModule(path){
 			temp = temp.pipe(sourcemaps.mapSources(function(sourcePath, file) {
 		        return path.js.folder + sourcePath;
 		    })).pipe(sourcemaps.write('.'));
+
+		if(/\.mjs$/m.test(path.js.file))
+			temp = temp.pipe(footer('\n//# sourceMappingURL='+path.js.file+'.map'));
 
 		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
 		versioning(path.versioning, location+'?', startTime);
