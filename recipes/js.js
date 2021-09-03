@@ -48,8 +48,11 @@ function addTask(name, obj){
 	else
 		console.error(".js settings only support 'combine' or 'module'");
 
-	if(obj.autoGenerate)
-		indexAutoLoad(obj, 'js', 'JS');
+	if(obj.autoGenerate){
+		if(obj.js.wrapped === 'mjs')
+			indexAutoLoad(obj, 'js', 'MJS');
+		else indexAutoLoad(obj, 'js', 'JS');
+	}
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){

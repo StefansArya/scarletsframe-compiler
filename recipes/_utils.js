@@ -83,9 +83,6 @@ module.exports = {
 		temp[0] += file;
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
-		if(/\.mjs$/m.test(file))
-			placement = 'MJS';
-
 		if(data.includes(temp[0])) return;
 		if(data.includes(`//#SF-${placement}-BEGIN`) === false)
 			return;
