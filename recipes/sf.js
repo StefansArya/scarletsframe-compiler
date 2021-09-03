@@ -48,8 +48,11 @@ function addTask(name, obj){
 	gulp.task(name, sfTask(obj, instance));
 
 	if(obj.autoGenerate){
-		indexAutoLoad(obj, 'sf', 'CSS');
-		indexAutoLoad(obj, 'sf', 'JS');
+		indexAutoLoad(obj, 'sf', 'SF.CSS');
+
+		if(obj.sf.wrapped === 'mjs')
+			indexAutoLoad(obj, 'sf', 'SF.MJS');
+		else indexAutoLoad(obj, 'sf', 'SF.JS');
 	}
 
 	var call = gulp.series(name);
@@ -182,7 +185,9 @@ function addTask(name, obj){
 			.on('error', console.error);
 
 		var isExist = obj.sf;
-		isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
+		if(isExist.wrapped === 'mjs')
+			isExist = fs.existsSync(isExist.folder+isExist.file+'.mjs');
+		else isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
 
 		if(!isExist){
 			console.log(`[First-Time] Compiling '.sf' files for '${chalk.cyan(name)}'...`);
@@ -196,6 +201,7 @@ function addTask(name, obj){
 }
 
 let unfinishedTask = new WeakSet();
+let unfinishedTask_ = 0;
 function sfTask(path, instance){
 	var folderLastPath = path.sf.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')
@@ -205,7 +211,8 @@ function sfTask(path, instance){
 
 	return function(done){
 		if(unfinishedTask.has(path)){
-			console.log("Similar task still unfinished, this new task will be dropped. Please trigger again after previous task was finished.");
+			console.log("Similar task still unfinished, this new task will be dropped. Please trigger again after previous task was finished. Try restarting this compiler if this message keep showing up.");
+			console.log('Total unfinished task: '+unfinishedTask_+'\nDropped for: '+path.sf.file);
 			return done();
 		}
 
@@ -249,13 +256,16 @@ function sfTask(path, instance){
 			}
 
 			unfinishedTask.delete(path);
+			unfinishedTask_--;
 
 			if(process.env.debug)
 				console.log(1, changes);
 
 			function extraction(data){
 				if(data === false) return;
-				const {sourceRoot,distName,which,code,map} = data;
+				let {sourceRoot, distName, which, code, map} = data;
+				if(path.sf.wrapped === 'mjs' && which === 'js')
+					which = 'mjs';
 
 				code | 0;
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
@@ -273,8 +283,8 @@ function sfTask(path, instance){
 				if(path.onCompiled && --firstCompile.sf === 0)
 					path.onCompiled('SF');
 
-				path.onFinish && path.onFinish('SF', location);
-				path.sf.onFinish && path.sf.onFinish(location);
+				path.onFinish && path.onFinish('SF', location, which);
+				path.sf.onFinish && path.sf.onFinish(location, which);
 			}
 
 			for(const key in changes)
@@ -282,6 +292,7 @@ function sfTask(path, instance){
 		}
 
 		unfinishedTask.add(path);
+		unfinishedTask_++;
 		return gulp.src(path.sf.combine).pipe(sfExt(sfExtOption));
 	}
 }
@@ -297,7 +308,7 @@ function removeTask(obj){
 		let temp = obj.autoGenerate.split('**')[0];
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
-		data = data.split(temp+obj.sf.file+'.js?');
+		data = data.split(temp+obj.sf.file+(obj.sf.wrapped === 'mjs' ? '.mjs' : '.js')+'?');
 		data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
 
 		data = data.join('').split(temp+obj.sf.file+'.css?');

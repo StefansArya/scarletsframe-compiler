@@ -77,17 +77,20 @@ module.exports = {
 
 		let file = obj[which].file;
 		if(which === 'sf')
-			file += '.'+placement.toLowerCase();
+			file += '.'+placement.split('.').pop().toLowerCase();
 
 		let temp = obj.autoGenerate.split('**');
 		temp[0] += file;
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
-		if(data.includes(temp[0])) return;
-		temp = temp[0]+'?'+startupTime+temp[1]+'\n';
+		if(/\.mjs$/m.test(file))
+			placement = 'MJS';
 
+		if(data.includes(temp[0])) return;
 		if(data.includes(`//#SF-${placement}-BEGIN`) === false)
-			return console.log(`'//#SF-${placement}-BEGIN' and '//#SF-${placement}-END' comment was not found on '${obj.versioning}'`);
+			return;
+
+		temp = temp[0]+'?'+startupTime+temp[1]+'\n';
 
 		// Get line space
 		let space = data.split(`//#SF-${placement}-BEGIN`)[0].split('\n');
@@ -133,7 +136,7 @@ function preprocessPath(key, temp, which){
 		};
 	else{
 		collectSourcePath[ref.file.replace(strip, '')+'.js'] = {
-			distPath:ref.file+'.js',
+			distPath:ref.file+(ref.wrapped === 'mjs' ? '.mjs' : '.js'),
 			base:ref.opt.base
 		};
 		collectSourcePath[ref.file.replace(strip, '')+'.css'] = {

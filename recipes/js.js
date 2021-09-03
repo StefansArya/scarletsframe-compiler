@@ -124,7 +124,10 @@ function jsTask(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
+		if(path.js.wrapped === 'mjs')
+			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
+		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
+
 		var temp = gulp.src(path.js.combine, path.js.opt);
 
 		if(includeSourceMap)
@@ -137,6 +140,8 @@ function jsTask(path){
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
+			else if(path.js.wrapped === 'mjs')
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.mjs));
 		}
 
 		if(Obj._compiling){
@@ -176,7 +181,9 @@ function jsTaskModule(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
+		if(path.js.wrapped === 'mjs')
+			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
+		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
 		var temp, jm;
 		temp = gulp.src(path.js.combine || path.js.module.from, path.js.opt);
@@ -215,6 +222,8 @@ function jsTaskModule(path){
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.true));
 			else if(path.js.wrapped === 'async')
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
+			else if(path.js.wrapped === 'mjs')
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.mjs));
 		}
 
 		if(!jm && Obj._compiling){

@@ -24,6 +24,9 @@ var Exports = {
 	clearGenerateImport(htmlPath){
 		let data = fs.readFileSync(htmlPath, 'utf8');
 		data = data
+			.replace(/(?<=\/\/\#SF\-SF\.CSS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-SF\.CSS\-END)/s, '')
+			.replace(/(?<=\/\/\#SF\-SF\.JS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-SF\.JS\-END)/s, '')
+			.replace(/(?<=\/\/\#SF\-SF\.MJS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-SF\.MJS\-END)/s, '')
 			.replace(/(?<=\/\/\#SF\-CSS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-CSS\-END)/s, '')
 			.replace(/(?<=\/\/\#SF\-JS\-BEGIN\n).*?\n(?=[\t ]+\/\/\#SF\-JS\-END)/s, '');
 
