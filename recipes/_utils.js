@@ -133,7 +133,7 @@ function preprocessPath(key, temp, which){
 		};
 	else{
 		collectSourcePath[ref.file.replace(strip, '')+'.js'] = {
-			distPath:ref.file+(ref.wrapped === 'mjs' ? '.mjs' : '.js'),
+			distPath:ref.file+((ref.wrapped === 'mjs' || ref.wrapped === 'async-mjs') ? '.mjs' : '.js'),
 			base:ref.opt.base
 		};
 		collectSourcePath[ref.file.replace(strip, '')+'.css'] = {

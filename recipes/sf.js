@@ -50,7 +50,7 @@ function addTask(name, obj){
 	if(obj.autoGenerate){
 		indexAutoLoad(obj, 'sf', 'SF.CSS');
 
-		if(obj.sf.wrapped === 'mjs')
+		if((obj.sf.wrapped === 'mjs' || obj.sf.wrapped === 'async-mjs'))
 			indexAutoLoad(obj, 'sf', 'SF.MJS');
 		else indexAutoLoad(obj, 'sf', 'SF.JS');
 	}
@@ -185,7 +185,7 @@ function addTask(name, obj){
 			.on('error', console.error);
 
 		var isExist = obj.sf;
-		if(isExist.wrapped === 'mjs')
+		if((isExist.wrapped === 'mjs' || isExist.wrapped === 'async-mjs'))
 			isExist = fs.existsSync(isExist.folder+isExist.file+'.mjs');
 		else isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
 
@@ -264,7 +264,7 @@ function sfTask(path, instance){
 			function extraction(data){
 				if(data === false) return;
 				let {sourceRoot, distName, which, code, map} = data;
-				if(path.sf.wrapped === 'mjs' && which === 'js')
+				if((path.sf.wrapped === 'mjs' || path.sf.wrapped === 'async-mjs') && which === 'js')
 					which = 'mjs';
 
 				code | 0;
@@ -308,7 +308,7 @@ function removeTask(obj){
 		let temp = obj.autoGenerate.split('**')[0];
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
-		data = data.split(temp+obj.sf.file+(obj.sf.wrapped === 'mjs' ? '.mjs' : '.js')+'?');
+		data = data.split(temp+obj.sf.file+((obj.sf.wrapped === 'mjs' || obj.sf.wrapped === 'async-mjs') ? '.mjs' : '.js')+'?');
 		data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
 
 		data = data.join('').split(temp+obj.sf.file+'.css?');

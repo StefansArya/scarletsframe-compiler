@@ -326,7 +326,7 @@ module.exports = class SFCompiler{
 		}
 
 		var map = new SourceMapGenerator({
-			file: `${distName}.${which === 'js' ? (options._opt.wrapped === 'mjs' ? 'mjs' : 'js') : which}`
+			file: `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`
 		});
 
 		for(const path in cache){
@@ -378,9 +378,11 @@ module.exports = class SFCompiler{
 				code = JSWrapperMerge(JSWrapper.async, code);
 			else if(options._opt.wrapped === 'mjs')
 				code = JSWrapperMerge(JSWrapper.mjs, code);
+			else if(options._opt.wrapped === 'async-mjs')
+				code = JSWrapperMerge(JSWrapper.async, code);
 		}
 
-		const mappingURL = `${distName}.${which === 'js' ? (options._opt.wrapped === 'mjs' ? 'mjs' : 'js') : which}`;
+		const mappingURL = `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`;
 		const sourceMapURL = which === 'js'
 			? `//# sourceMappingURL=${mappingURL}.map`
 			: `/*# sourceMappingURL=${mappingURL}.map */`;

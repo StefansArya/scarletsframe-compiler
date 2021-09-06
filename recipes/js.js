@@ -62,7 +62,7 @@ function addTask(name, obj){
 		console.error(".js settings only support 'combine' or 'module'");
 
 	if(obj.autoGenerate){
-		if(obj.js.wrapped === 'mjs')
+		if(obj.js.wrapped === 'mjs' || obj.js.wrapped === 'async-mjs')
 			indexAutoLoad(obj, 'js', 'MJS');
 		else indexAutoLoad(obj, 'js', 'JS');
 	}
@@ -140,7 +140,7 @@ function jsTask(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		if(path.js.wrapped === 'mjs')
+		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
 		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
@@ -158,6 +158,8 @@ function jsTask(path){
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 			else if(path.js.wrapped === 'mjs')
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.mjs));
+			else if(path.js.wrapped === 'async-mjs')
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 		}
 
 		if(Obj._compiling){
@@ -200,7 +202,7 @@ function jsTaskModule(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		if(path.js.wrapped === 'mjs')
+		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
 		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
@@ -243,6 +245,8 @@ function jsTaskModule(path){
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 			else if(path.js.wrapped === 'mjs')
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.mjs));
+			else if(path.js.wrapped === 'async-mjs')
+				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 		}
 
 		if(!jm && Obj._compiling){
