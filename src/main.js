@@ -152,6 +152,13 @@ module.exports = class SFCompiler{
 		cached.raw = raw;
 
 		let content = raw.split('\n## ');
+		if(content.length === 1 && raw.slice(0, 2) !== '##'){
+			console.log("The .sf file doesn't seems to have any fences, make sure you already put '## js-global' or something else. File: "+root+path);
+
+			that.sourceFinish(callback, singleCompile, onComplete);
+			if(singleCompile && _opt.instant) callback(cached, true, 'raw', true, cached);
+			return;
+		}
 
 		var lines = 0;
 		if(content[0].slice(0, 3) === '## '){
