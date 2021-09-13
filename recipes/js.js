@@ -45,6 +45,15 @@ function footer(text){
 	});
 }
 
+function changeExt(text){
+	return through.obj(function(file, encoding, callback){
+		if(file.extname !== '.map')
+			file.extname = text;
+
+		callback(null, file);
+	});
+}
+
 var taskList = {};
 function addTask(name, obj){
 	var last = 0;
@@ -140,8 +149,11 @@ function jsTask(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')
+		let isModule = false;
+		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs'){
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
+			isModule = true;
+		}
 		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
 		var temp = gulp.src(path.js.combine, path.js.opt);
@@ -168,6 +180,9 @@ function jsTask(path){
 
 			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
 		}
+
+		if(isModule)
+			temp = temp.pipe(changeExt('.mjs'));
 
 		if(path.js.header)
 			temp = temp.pipe(header(path.js.header+"\n"));
@@ -202,8 +217,11 @@ function jsTaskModule(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
-		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')
+		let isModule = false;
+		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs'){
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
+			isModule = true;
+		}
 		else removeOldMap(path.js.folder, path.js.file.replace('.js', ''), '.js');
 
 		var temp, jm;
@@ -257,6 +275,9 @@ function jsTaskModule(path){
 
 		if(path.js.header)
 			temp = temp.pipe(header(path.js.header+"\n"));
+
+		if(isModule)
+			temp = temp.pipe(changeExt('.mjs'));
 
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.mapSources(function(sourcePath, file) {

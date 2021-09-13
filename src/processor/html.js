@@ -11,8 +11,23 @@ module.exports = function(path, content, callback, offset, options){
 	// because it may be used for modifying from the browser
 
 	if(options.minify){
-		content = content.replace(/{{[\s\S]*?}}/g, function(full){
-			return full.replace(/\/\/.*?$/gm, '').split('<').join('*%1#').split('>').join('*%2#');
+		// Avoid enclosed tag
+		let temp = [];
+		content = content.replace(/{\[(.*?)\]}/gs, function(full, content){
+			temp.push(`{[${content.trim()}]}`);
+			return '&$;'+(temp.length-1)+'$;&';
+		});
+
+		content = content.replace(/{{.*?({{|}})/gs, function(full){
+			return avoidQuotes(full, function(full){
+				return full.replace(/\/\/.*?$/gm, '').replace(/\/\*.*?\*\//gs, '')
+					.split('<').join('*%1#').split('>').join('*%2#');
+			});
+		});
+
+		// Put back enclosed tag
+		content = content.replace(/&\$;([0-9]+)\$;&/g, function(full, index){
+			return temp[index];
 		});
 
 		content = htmlmin.minify(content, {
@@ -80,4 +95,31 @@ module.exports = function(path, content, callback, offset, options){
 
 	result.content = `__tmplt["${prefix + path.fileName}"]=${html};`;
 	callback(result);
+}
+
+var _es = '%@~';
+function avoidQuotes(str, func, onQuotes){
+	str = str.split(_es).join('-');
+
+	var temp = [];
+	str = str.replace(/(['"])(?:\1|[\s\S]*?[^\\]\1)/g, function(full){
+		temp.push(full);
+		return _es+(temp.length-1)+_es;
+	});
+
+	if(temp.length === 0)
+		return func(str);
+
+	str = func(str);
+
+	if(onQuotes !== void 0){
+		for (var i = 0; i < temp.length; i++)
+			str = str.replace(_es+i+_es, onQuotes(temp[i]));
+	}
+	else{
+		for (var i = 0; i < temp.length; i++)
+			str = str.replace(_es+i+_es, temp[i]);
+	}
+
+	return str;
 }
