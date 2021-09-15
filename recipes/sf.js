@@ -255,6 +255,9 @@ function sfTask(path, instance){
 					return;
 				}
 
+				changes.js = changes.js || _changes.js;
+				changes.css = changes.css || _changes.css;
+
 				_changes = isStartup = false;
 				delete sfExtOption.data;
 			}
@@ -265,13 +268,13 @@ function sfTask(path, instance){
 			if(process.env.debug)
 				console.log(1, changes);
 
+			let waitCount = changes.js && changes.css ? 2 : 1;
 			function extraction(data){
 				if(data === false) return;
 				let {sourceRoot, distName, which, code, map} = data;
 				if((path.sf.wrapped === 'mjs' || path.sf.wrapped === 'async-mjs') && which === 'js')
 					which = 'mjs';
 
-				code | 0;
 				fs.writeFileSync(`${sourceRoot}${distName}.${which}`, code);
 
 				if(includeSourceMap)
@@ -284,14 +287,14 @@ function sfTask(path, instance){
 					}, 50);
 				}
 
-				if(path.onCompiled && --firstCompile.sf === 0)
+				if(path.onCompiled && --waitCount === 0 && --firstCompile.sf === 0)
 					path.onCompiled('SF');
 
 				path.onFinish && path.onFinish('SF', location, which);
 				path.sf.onFinish && path.sf.onFinish(location, which);
 			}
 
-			for(const key in _changes)
+			for(const key in changes)
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
 		}
 
