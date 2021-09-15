@@ -125,7 +125,12 @@ function htmlTask(path){
 
 		var startTime = Date.now();
 		var location = path.html.folder.replace(path.stripURL || '#$%!.', '')+path.html.file;
-		versioning(path.versioning, location+'?', startTime);
+
+		path.onStart && path.onStart('HTML', location);
+		path.html.onStart && path.html.onStart(location);
+
+		if(path.versioning)
+			versioning(path.versioning, location+'?', startTime);
 
 		var src = gulp.src(path.html.combine);
 

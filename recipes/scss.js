@@ -64,6 +64,10 @@ function scssTask(path){
 		obj.onCompiled && firstCompile.css++;
 
 		var startTime = Date.now();
+		var location = path.scss.folder.replace(path.stripURL || '#$%!.', '')+path.scss.file;
+		path.onStart && path.onStart('SCSS', location);
+		path.scss.onStart && path.scss.onStart(location);
+
 		removeOldMap(path.scss.folder, path.scss.file.replace('.css', ''), '.css');
 		var temp = gulp.src(path.scss.combine, path.scss.opt);
 
@@ -87,8 +91,8 @@ function scssTask(path){
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.write('.'));
 
-		var location = path.scss.folder.replace(path.stripURL || '#$%!.', '')+path.scss.file;
-		versioning(path.versioning, location+'?', startTime);
+		if(path.versioning)
+			versioning(path.versioning, location+'?', startTime);
 
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.css === 0)

@@ -118,7 +118,7 @@ function addTask(name, obj){
 				changed += sourceMapBase64(map.toString());
 
 				Obj._browserSync.sockets.emit('sf-hot-js', changed);
-				Obj._browserSync.notify("JavaScript Reloaded");
+				Obj._browserSync.notify("JS Reloaded");
 			}
 
 			call();
@@ -134,7 +134,7 @@ function addTask(name, obj){
 		isExist = fs.existsSync(isExist.folder+isExist.file);
 
 		if(!isExist){
-			console.log(`[First-Time] Compiling JavaScript for '${chalk.cyan(name)}'...`);
+			console.log(`[First-Time] Compiling JS for '${chalk.cyan(name)}'...`);
 			call();
 		}
 		else if(startupCompile)
@@ -149,6 +149,10 @@ function jsTask(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
+		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
+		path.onStart && path.onStart('JS', location);
+		path.js.onStart && path.js.onStart(location);
+
 		let isModule = false;
 		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs'){
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
@@ -193,14 +197,14 @@ function jsTask(path){
 		if(/\.mjs$/m.test(path.js.file))
 			temp = temp.pipe(footer('\n//# sourceMappingURL='+path.js.file+'.map'));
 
-		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
-		versioning(path.versioning, location+'?', startTime);
+		if(path.versioning)
+			versioning(path.versioning, location+'?', startTime);
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.js === 0)
-				obj.onCompiled('JavaScript');
+				obj.onCompiled('JS');
 
-			path.onFinish && path.onFinish('JavaScript', location);
+			path.onFinish && path.onFinish('JS', location);
 			path.js.onFinish && path.js.onFinish(location);
 
 			if(Obj._browserSync && hotReload.js === void 0)
@@ -217,6 +221,10 @@ function jsTaskModule(path){
 		obj.onCompiled && firstCompile.js++;
 
 		var startTime = Date.now();
+		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
+		path.onStart || path.onStart('JS', location);
+		path.js.onStart && path.js.onStart(location);
+
 		let isModule = false;
 		if(path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs'){
 			removeOldMap(path.js.folder, path.js.file.replace('.mjs', ''), '.mjs');
@@ -287,14 +295,14 @@ function jsTaskModule(path){
 		if(/\.mjs$/m.test(path.js.file))
 			temp = temp.pipe(footer('\n//# sourceMappingURL='+path.js.file+'.map'));
 
-		var location = path.js.folder.replace(path.stripURL || '#$%!.', '')+path.js.file;
-		versioning(path.versioning, location+'?', startTime);
+		if(path.versioning)
+			versioning(path.versioning, location+'?', startTime);
 
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.js === 0)
-				obj.onCompiled('JavaScript');
+				obj.onCompiled('JS');
 
-			path.onFinish || path.onFinish('JavaScript', location);
+			path.onFinish || path.onFinish('JS', location);
 			path.js.onFinish && path.js.onFinish(location);
 
 			if(Obj._browserSync && hotReload.js === void 0)
