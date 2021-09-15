@@ -54,8 +54,8 @@ function init(only){
 
 	if(!only || only === 'js'){
 		Exports.taskJS = require('./recipes/js.js')(pack);
-		watchPath('js', Exports.taskJS.addTask, obj.path);
-		console.log(`[${chalk.gray('Prepared')}] .js handler`);
+		watchPath('js', Exports.taskJS.addTask, obj.path); // dont remove the space
+		console.log(`[${chalk.gray('Prepared')}] .js handler        `);
 	}
 
 	if(!only || only === 'css'){
@@ -138,7 +138,7 @@ gulp.task('default', function(){
 
 	SFLang.watch();
 	browserSync = obj._browserSync = browserSync.init(obj.browserSync, function(){
-		require('./src/browser-cmd.js')(browserSync.sockets, collectSourcePath, obj.editor);
+		require('./src/browser-cmd.js')(browserSync.sockets, collectSourcePath, obj.editor || 'sublime');
 	});
 });
 
