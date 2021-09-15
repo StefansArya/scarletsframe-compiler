@@ -13,6 +13,7 @@ module.exports = function(full, list, root){
 	let fullMatch = false;
 
 	if(list.constructor === String){
+		list = list.split('\\').join('/');
 		if(list === full)
 			fullMatch = true;
 
@@ -27,6 +28,8 @@ module.exports = function(full, list, root){
 	}
 	else for (var i = 0; i < list.length; i++) {
 		let current = list[i];
+		current = current.split('\\').join('/');
+
 		if(current === full)
 			fullMatch = true;
 
