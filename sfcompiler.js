@@ -11,7 +11,7 @@ var fs = require('fs');
 
 obj._browserSync = false; // lazy init to improve startup performance
 
-obj._compiling = false;
+obj._compiling = obj._compiling || false;
 var firstCompile = {
 	js:0,
 	css:0,
@@ -124,7 +124,10 @@ function progressCounter(newline){
 }
 
 // To be executed on Development computer
-gulp.task('default', function(){
+gulp.task('default', function(done){
+	if(obj._compiling === true)
+		return compileOnly(done);
+
 	init();
 
 	if(!obj.browserSync)
@@ -146,12 +149,16 @@ gulp.task('default', function(){
 // To be executed on Continuous Delivery
 function compileOnly(done, which){
 	obj._compiling = true;
+
+	if(!obj.onCompiled)
+		obj.onCompiled = ()=>{};
+
 	init(which);
 
 	var interval = setInterval(function(){
 		if(progressCounter()){
 			clearInterval(interval);
-			done();
+			done && done();
 		}
 	}, 500);
 }

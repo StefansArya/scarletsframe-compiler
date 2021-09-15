@@ -216,7 +216,7 @@ function sfTask(path, instance){
 			return done();
 		}
 
-		path.onCompiled && firstCompile.sf++;
+		obj.onCompiled && firstCompile.sf++;
 
 		var startTime = Date.now();
 		var location = path.sf.folder.replace(path.stripURL || '#$%!.', '')+path.sf.file;
@@ -254,7 +254,9 @@ function sfTask(path, instance){
 
 					return;
 				}
+			}
 
+			if(_changes !== false){
 				changes.js = changes.js || _changes.js;
 				changes.css = changes.css || _changes.css;
 
@@ -287,8 +289,8 @@ function sfTask(path, instance){
 					}, 50);
 				}
 
-				if(path.onCompiled && --waitCount === 0 && --firstCompile.sf === 0)
-					path.onCompiled('SF');
+				if(obj.onCompiled && --waitCount === 0 && --firstCompile.sf === 0)
+					obj.onCompiled('SF');
 
 				path.onFinish && path.onFinish('SF', location, which);
 				path.sf.onFinish && path.sf.onFinish(location, which);
