@@ -29,7 +29,7 @@
     "source-map": "^0.7.3",
     "source-map-merger": "^0.2.0",
     "string-similarity": "^4.0.4",
-    "strip-ansi": "6.0.0",
+    "strip-ansi": "6.0.1",
     "terser": "^5.7.1",
     "through2": "^4.0.2",
     "vinyl-sourcemaps-apply": "^0.2.1"
