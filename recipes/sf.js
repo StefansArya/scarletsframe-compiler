@@ -194,9 +194,15 @@ function addTask(name, obj){
 			.on('error', console.error);
 
 		var isExist = obj.sf;
-		if((isExist.wrapped === 'mjs' || isExist.wrapped === 'async-mjs'))
-			isExist = fs.existsSync(isExist.folder+isExist.file+'.mjs');
-		else isExist = fs.existsSync(isExist.folder+isExist.file+'.js');
+		let filePath;
+		if((isExist.wrapped === 'mjs' || isExist.wrapped === 'async-mjs')){
+			filePath = isExist.folder+isExist.file+'.mjs';
+			isExist = fs.existsSync(filePath);
+		}
+		else{
+			filePath = isExist.folder+isExist.file+'.js';
+			isExist = fs.existsSync(filePath);
+		}
 
 		if(!isExist){
 			console.log(`[First-Time] Compiling '.sf' files for '${chalk.cyan(name)}'...`);
@@ -204,6 +210,14 @@ function addTask(name, obj){
 		}
 		else if(startupCompile)
 			setTimeout(call, 500);
+		else {
+			// If reach here, that's mean the compiled version was already exist
+			let oldContent = fs.readFileSync(filePath, 'utf8');
+			if(obj.sf._tempData === void 0)
+				obj.sf._tempData = {keys:[], types:{}};
+
+			SFCompilerHelper.jsGetScopeVar(oldContent, obj.sf.file, obj.sf.wrapped, false, obj.sf._tempData, false, void 0, true);
+		}
 	}
 
 	else call();

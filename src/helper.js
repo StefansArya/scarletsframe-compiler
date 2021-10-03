@@ -171,7 +171,7 @@ module.exports = {
 
 		return {route: diveRoute, mapRoute: diveMapRoute, getCode}
 	},
-	jsGetScopeVar(content, fullPath, wrapped, minify, save, isHot, path){
+	jsGetScopeVar(content, fullPath, wrapped, minify, save, isHot, path, readOnly){
 		if(minify) return content; // We only use jsGetScopeVar on development mode only
 
 		let cleanContent = content.replace(/\/\*.*?\*\//gs, '').replace(/\/\/.*?$/gm, '').replace(/([`'"])(?:\1|[\s\S]*?[^\\]\1)/g, '');
@@ -255,6 +255,7 @@ module.exports = {
 			});
 		}
 
+		if(readOnly) return;
 		if(has === false) return content;
 
 		let createDeclaration = ''; // Borrow saved definition to first line

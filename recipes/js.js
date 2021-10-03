@@ -151,7 +151,8 @@ function addTask(name, obj){
 			.on('error', console.error);
 
 		var isExist = obj.js;
-		isExist = fs.existsSync(isExist.folder+isExist.file);
+		let filePath = isExist.folder+isExist.file;
+		isExist = fs.existsSync(filePath);
 
 		if(!isExist){
 			console.log(`[First-Time] Compiling JS for '${chalk.cyan(name)}'...`);
@@ -159,6 +160,14 @@ function addTask(name, obj){
 		}
 		else if(startupCompile)
 			setTimeout(call, 500);
+		else {
+			// If reach here, that's mean the compiled version was already exist
+			let oldContent = fs.readFileSync(filePath, 'utf8');
+			if(obj.js._tempData === void 0)
+				obj.js._tempData = {keys:[], types:{}};
+
+			SFCompilerHelper.jsGetScopeVar(oldContent, obj.js.file, obj.js.wrapped, false, obj.js._tempData, false, void 0, true);
+		}
 	}
 
 	else call();
