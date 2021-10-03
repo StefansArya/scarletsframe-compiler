@@ -263,7 +263,7 @@ module.exports = {
 		for(let key of missing){
 			let type = save.types[key];
 
-			if(type === 'class' && reassign.has(key))
+			if(type === 'class' && (!isHot || reassign.has(key)))
 				continue;
 
 			if(type === 'const')
