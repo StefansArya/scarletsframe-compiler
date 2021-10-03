@@ -298,13 +298,6 @@ function sfTask(path, instance){
 				if(data === false) return;
 				let {sourceRoot, distName, which, code, map} = data;
 
-				if(which === 'js'){
-					if(path.sf._tempData === void 0)
-						path.sf._tempData = {keys:[], types:{}};
-
-					code = SFCompilerHelper.jsGetScopeVar(code, path.sf.file, path.sf.wrapped, Obj._compiling, path.sf._tempData, false, void 0);
-				}
-
 				if((path.sf.wrapped === 'mjs' || path.sf.wrapped === 'async-mjs') && which === 'js')
 					which = 'mjs';
 

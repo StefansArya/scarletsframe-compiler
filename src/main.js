@@ -2,6 +2,7 @@ var fs = require('fs');
 const chalk = require('chalk');
 const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 const {createTreeDiver} = require('./helper.js');
+const SFCompilerHelper = require('./helper.js');
 const JSWrapper = require('./js-wrapper.js');
 // var mergeMap = require('merge-source-map');
 var debugging = false;
@@ -378,6 +379,12 @@ module.exports = class SFCompiler{
 				code += optRoutes._$cache;
 				treeDiver.mapRoute(optRoutes);
 			}
+
+			let obj = options._opt;
+			if(obj._tempData === void 0)
+				obj._tempData = {keys:[], types:{}};
+
+			code = SFCompilerHelper.jsGetScopeVar(code, obj.file, obj.wrapped, options.minify, obj._tempData, false, void 0);
 
 			if(options._opt.wrapped === true)
 				code = JSWrapperMerge(JSWrapper.true, code);
