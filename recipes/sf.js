@@ -105,7 +105,7 @@ function addTask(name, obj){
 							if(obj.sf._tempData === void 0)
 								obj.sf._tempData = {keys:[], types:{}};
 
-							content = SFCompilerHelper.jsGetScopeVar(data.content, obj.sf.file, obj.sf.wrapped, Obj._compiling, true, {
+							content = SFCompilerHelper.jsGetScopeVar(data.content, obj.sf.file, obj.sf.wrapped, Obj._compiling, obj.sf._tempData, true, {
 								fileName: path,
 								base: root,
 							});
