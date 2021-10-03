@@ -9,7 +9,7 @@ module.exports = {
 		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
-	'mjs': ['', ''],
+	'mjs': ['"use strict";', ''],
 
 	'es6-function': ["if(typeof window === 'undefined'){var window = this}; async function _init_(){'use strict'; let module = {exports:{}};", ';return module.exports}; export default _init_;'], // Don't change the '_init_'
 
