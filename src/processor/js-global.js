@@ -19,10 +19,10 @@
 	callback must be called
  */
 
-const getGlobalClass = /(?:^|^ )class (\w+)/gm;
 const {diveObject} = require('../helper.js');
+const SFCompilerHelper = require('../helper.js');
 
-module.exports = function(path, content, callback, offset, options){
+module.exports = function(path, content, callback, offset, options, obj){
 	const lines = content.split('\n').length;
 	const result = {};
 
@@ -98,18 +98,6 @@ module.exports = function(path, content, callback, offset, options){
 			}
 		}
 		else return console.error(options.extra, "is not suported for JS options in", prefix + path.fileName);
-	}
-	else {
-		// For hot reloading class in the global scope
-		if(!options.minify){
-			let addition = '';
-			content.replace(getGlobalClass, (full, name)=>{
-				addition += `if(!window.${name})window.${name}=${name};Object.defineProperty(${name}.prototype, "sf$filePath", {configurable:true, value:"${path.base+'/'+path.fileName}"});`;
-			});
-
-			if(addition.length !== 0)
-				content += `;${addition}`
-		}
 	}
 
 	if(content.includes('#this.path')){

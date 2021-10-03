@@ -75,7 +75,8 @@ function addTask(name, obj){
 					};
 
 					const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
-					instance.loadSource(file.replace(path, ''), path, function(data, isData, which, isComplete, cache){
+					const root = file.replace(path, '');
+					instance.loadSource(root, path, function(data, isData, which, isComplete, cache){
 						if(!isData){
 							if(isComplete && pendingHTML.length !== 0)
 								pendingHTMLSend();
@@ -101,7 +102,15 @@ function addTask(name, obj){
 							isHTML = true;
 						}
 						else {
-							content = SFCompilerHelper.jsGetScopeVar(data.content, path);
+							if(obj.sf._tempData === void 0)
+								obj.sf._tempData = {keys:[], types:{}};
+
+							content = SFCompilerHelper.jsGetScopeVar(data.content, obj.sf.file, obj.sf.wrapped, Obj._compiling, true, {
+								fileName: path,
+								base: root,
+							});
+
+							// Auto activate HTML template's hot reload
 							if(content.slice(0, 8) === '__tmplt['){
 								jsMap = false;
 								content = "window.__tmplt=window.templates;"+content+';window.templates=window.templates;';
@@ -274,6 +283,14 @@ function sfTask(path, instance){
 			function extraction(data){
 				if(data === false) return;
 				let {sourceRoot, distName, which, code, map} = data;
+
+				if(which === 'js'){
+					if(path.sf._tempData === void 0)
+						path.sf._tempData = {keys:[], types:{}};
+
+					code = SFCompilerHelper.jsGetScopeVar(code, path.sf.file, path.sf.wrapped, Obj._compiling, path.sf._tempData, false, void 0);
+				}
+
 				if((path.sf.wrapped === 'mjs' || path.sf.wrapped === 'async-mjs') && which === 'js')
 					which = 'mjs';
 

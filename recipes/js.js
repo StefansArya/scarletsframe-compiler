@@ -12,6 +12,7 @@ var chalk = require('chalk');
 const { SourceMapGenerator } = require('source-map');
 const JSWrapper = require('../src/js-wrapper.js');
 var getRelativePathFromList = require('../sf-relative-path.js');
+const SFCompilerHelper = require('../src/helper.js');
 var terser = null;
 var babel = null;
 
@@ -27,6 +28,18 @@ function JSWrapperMerge(wrapper, es6Module){
 
 		if(es6Module) temp.unshift(JSWrapper._exports);
 		file.contents = Buffer.concat(temp);
+
+		callback(null, file);
+	});
+}
+
+function jsGetScopeVar(fullPath, wrapped, minify, data, isHot, path){
+	return through.obj(function(file, encoding, callback){
+		if(file.extname !== '.map'){
+			let text = file.contents.toString('utf8');
+			text = SFCompilerHelper.jsGetScopeVar(text, fullPath, wrapped, minify, data, isHot, path);
+			file.contents = Buffer.from(text);
+		}
 
 		callback(null, file);
 	});
@@ -115,6 +128,13 @@ function addTask(name, obj){
 					});
 				}
 
+				if(obj.js._tempData === void 0)
+					obj.js._tempData = {keys:[], types:{}};
+
+				changed = SFCompilerHelper.jsGetScopeVar(changed, obj.js.file, obj.js.wrapped, Obj._compiling, obj.js._tempData, true, {
+					fileName: relativePath,
+					base: file.replace(relativePath, ''),
+				});
 				changed += sourceMapBase64(map.toString());
 
 				Obj._browserSync.sockets.emit('sf-hot-js', changed);
@@ -166,6 +186,13 @@ function jsTask(path){
 			temp = temp.pipe(sourcemaps.init());
 
 		temp = temp.pipe(concat(path.js.file)).pipe(SFLang.jsPipe());
+
+		if(!Obj._compiling){
+			if(path.js._tempData === void 0)
+				path.js._tempData = {keys:[], types:{}};
+
+			temp = temp.pipe(jsGetScopeVar(path.js.file, path.js.wrapped, Obj._compiling, path.js._tempData, false, void 0));
+		}
 
 		if(path.js.wrapped !== void 0){
 			if(path.js.wrapped === true)

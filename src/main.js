@@ -294,7 +294,7 @@ module.exports = class SFCompiler{
 				proc.delete(path);
 
 				if(isComplete) that.sourceFinish(callback, singleCompile, onComplete);
-			}, lines, that.options);
+			}, lines, that.options, _opt);
 
 			if(extra !== false)
 				delete that.options.extra;

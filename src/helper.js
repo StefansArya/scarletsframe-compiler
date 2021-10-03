@@ -1,4 +1,8 @@
-const regex = /(?:^|^ )(class|function|var) (\w+)/gm;
+const regex = /(?:^|^ |^export )(?:(class|function)\s+(\w+)|(var|let|const)\s+([\w\[,\]{}_\s:]+?)\s?(?:[=;]|$))/gms;
+// Group 1,3 (class/var), Group 2,4 (name)
+
+const regexDeconstructor = /\w+(?::(.*?)(?:[\]},])|)/gms;
+// Full (name), Group 1 (alias)
 
 module.exports = {
 	diveObject(obj, parts, setValue){
@@ -167,54 +171,154 @@ module.exports = {
 
 		return {route: diveRoute, mapRoute: diveMapRoute, getCode}
 	},
-	jsGetScopeVar(content, path){
-		const prop = {};
-		var has = false;
-		content.replace(regex, function(full, key, word){
+	jsGetScopeVar(content, fullPath, wrapped, minify, save, isHot, path){
+		if(minify) return content; // We only use jsGetScopeVar on development mode only
+
+		let cleanContent = content.replace(/\/\*.*?\*\//gs, '').replace(/\/\/.*?$/gm, '').replace(/([`'"])(?:\1|[\s\S]*?[^\\]\1)/g, '');
+
+		var has = false, recreateRegExp = false;
+		const reassign = new Set();
+		const reclass = new Set(); // Redefine class prototype and static data
+		cleanContent.replace(regex, function(full, clas_func, name1, var_let, name2){
 			has = true;
-			prop[word] = key === 'class';
+
+			if(name2 !== void 0){
+				let startWith = name2.slice(0, 1);
+				if(startWith === '[' || startWith === '{'){
+					name2.replace(regexDeconstructor, function(name, alias){
+						if(alias !== void 0){
+							alias = alias.trim();
+							if(alias.length !== 0)
+								name = alias;
+						}
+
+						reassign.add(name);
+						save.types[name] = var_let;
+
+						if(!save.keys.includes(name)){
+							recreateRegExp = true;
+							save.keys.push(name);
+						}
+
+						return name;
+					});
+
+					return full;
+				}
+			}
+
+			if(clas_func !== void 0){
+				let pos = arguments[arguments.length-2];
+				if(pos > 10){
+					let getBefore = cleanContent.slice(pos - 10, pos).trim();
+					let last = getBefore.slice(-1);
+
+					// Make sure it's at outer scope
+					// after ;)}]
+					if(/[~!@#$%^&(\-_+=[{,.:?/|\\]/.test(last))
+						return full;
+				}
+			}
+
+			let name = name1 || name2;
+			let which = clas_func || var_let;
+
+			if(which === 'class' && name in save.types)
+				reclass.add(name);
+			else{
+				reassign.add(name);
+				save.types[name] = which;
+
+				if(!save.keys.includes(name)){
+					recreateRegExp = true;
+					save.keys.push(name);
+				}
+			}
+
 			return full;
 		});
 
+		if(recreateRegExp)
+			save.keysRegex = RegExp('\\b('+save.keys.sort((a,b)=> b.length - a.length).join('|')+')(?:\\s?(=)|\\b)', 'g');
+			// Group 1 (name), Group 2 (re-assigned?)
+
+		let missing = new Set();
+		if(save.keys.length !== 0){
+			cleanContent.replace(save.keysRegex, function(full, name, reassigned){
+				if(reassign.has(name)) return full;
+				missing.add(name);
+
+				if(reassigned)
+					reassign.add(name);
+
+				return full;
+			});
+		}
+
 		if(has === false) return content;
 
-		// Note: late window assignment, to avoid possible memory leak
-		var addition = '\n;';
-		let propArr = [];
-		for(let word in prop){
-			propArr.push(word);
+		let createDeclaration = ''; // Borrow saved definition to first line
+		let declareTemp = {const:'', let:''};
+		for(let key of missing){
+			let type = save.types[key];
 
-			if(!prop[word]) // not a Class
-				addition += `window.${word}=${word};`;
-			else {
-				addition += `if(!window.${word})window.${word}=${word};else{
-const glob = window.${word};
-if(window.sf$hotReload === void 0)
-	alert("This hot reload feature need framework v0.34.9 or higher");
-window.sf$hotReload.replaceClass(glob, ${word});
-${word}=glob;
-if(glob.sf$refresh)glob.sf$refresh.forEach(v=>v());
-}`;
+			if(type === 'class' && reassign.has(key))
+				continue;
+
+			if(type === 'const')
+				declareTemp.const += key+',';
+			else declareTemp.let += key+',';
+		}
+
+		if(declareTemp.const !== '')
+			createDeclaration += `;const {${declareTemp.const.slice(0, -1)}}=p_sf1cmplr;`;
+		if(declareTemp.let !== '')
+			createDeclaration += `;let {${declareTemp.let.slice(0, -1)}}=p_sf1cmplr;`;
+
+
+		let newClass = new Set();
+		let createBackup = ''; // Variable defined
+		for(let key of reassign){
+			createBackup += `${key},`;
+
+			if(!reclass.has(key) && save.types[key] === 'class')
+				newClass.add(key);
+		}
+
+		if(createBackup.length !== 0)
+			createBackup = `;Object.assign(p_sf1cmplr,{${createBackup.slice(0, -1)}});`;
+
+		let createReClass = ''; // Redefine class
+		if(isHot){
+			for(let key of reclass){
+				createReClass += `[${key}, $_${key}],`;
+				content = content.split('class '+key+' ').join('class $_'+key+' ');
+			}
+
+			if(createReClass.length !== 0){
+				createReClass = `;[${createReClass.slice(0, -1)}].forEach(([orig,news])=>{
+	sf$hotReload.replaceClass(orig, news);
+	orig.sf$refresh?.forEach(v=>v());
+});`;
 			}
 		}
 
-		propArr = JSON.stringify(propArr);
+		if(path !== void 0){
+			let configNewClass = '';
+			for(let key of newClass)
+				configNewClass += `${key},`;
 
-		// Don't use var inside this
-		addition += `;{
-if(!window._sf1cmplr) window._sf1cmplr={};
-let temp = window._sf1cmplr["${path}"];
-if(!temp) window._sf1cmplr["${path}"] = ${propArr};
-else{
-	const propArr = ${propArr};
-	for (let i = 0; i < temp.length; i++) {
-		if(!propArr.includes(temp[i]))
-			delete window[temp[i]];
-	}
-	window._sf1cmplr["${path}"] = propArr
-}};
-`;
+			if(configNewClass.length !== 0){
+				createReClass += `;{
+	let sf$filePath = {configurable:true, value:"${path.base+'/'+path.fileName}"};
+	[${configNewClass.slice(0, -1)}].forEach(v=> Object.defineProperty(v.prototype, "sf$filePath", sf$filePath);
+};`;
+			}
+		}
 
-		return content+addition;
+		// return createDeclaration + createBackup + createReClass;
+
+		content = `;window._sf1cmplr ??= {};let p_sf1cmplr = _sf1cmplr["${fullPath}"] ??= {};` + createDeclaration + content + createBackup + createReClass;
+		return content;
 	}
 };
