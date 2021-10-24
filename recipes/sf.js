@@ -320,8 +320,10 @@ function sfTask(path, instance){
 				path.sf.onFinish && path.sf.onFinish(location, which);
 			}
 
-			for(const key in changes)
+			for(const key in changes){
+				if(!changes[key]) return;
 				instance.extractAll(key, path.sf.folder, path.sf.file, extraction, options);
+			}
 		}
 
 		unfinishedTask.add(path);
