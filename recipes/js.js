@@ -213,6 +213,8 @@ function jsTask(path){
 			else if(path.js.wrapped === 'async-mjs')
 				temp = temp.pipe(JSWrapperMerge(JSWrapper.async));
 		}
+		else temp = temp.pipe(JSWrapperMerge(JSWrapper.default));
+
 
 		if(Obj._compiling){
 			if(!terser) terser = require('gulp-terser');

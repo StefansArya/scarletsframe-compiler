@@ -10,6 +10,7 @@ module.exports = {
 	],
 
 	'mjs': ['"use strict";', ''],
+	'default': [';{', '};'],
 
 	'es6-function': ["if(typeof window === 'undefined'){var window = this}; async function _init_(){'use strict'; let module = {exports:{}};", ';return module.exports}; export default _init_;'], // Don't change the '_init_'
 

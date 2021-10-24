@@ -394,6 +394,7 @@ module.exports = class SFCompiler{
 				code = JSWrapperMerge(JSWrapper.mjs, code);
 			else if(options._opt.wrapped === 'async-mjs')
 				code = JSWrapperMerge(JSWrapper.async, code);
+			else code = JSWrapperMerge(JSWrapper.default, code);
 		}
 
 		const mappingURL = `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`;
@@ -401,7 +402,7 @@ module.exports = class SFCompiler{
 			? `//# sourceMappingURL=${mappingURL}.map`
 			: `/*# sourceMappingURL=${mappingURL}.map */`;
 
-		code += sourceMapURL;
+		code += '\n'+sourceMapURL;
 
 		if(which === 'css' && options.autoprefixer){
 			if(autoprefixer === void 0){
