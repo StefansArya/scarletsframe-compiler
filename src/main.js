@@ -328,9 +328,9 @@ module.exports = class SFCompiler{
 		var code = sourceInit[which];
 		var currentLines = 1;
 
-		if(options._opt.header !== void 0){
+		if(options._opt.header){
 			code = options._opt.header + '\n' + code;
-			currentLines = options._opt.header.split('\n').length;
+			currentLines = options._opt.header.split('\n').length+1;
 		}
 
 		var map = new SourceMapGenerator({

@@ -124,17 +124,18 @@ function addTask(name, obj){
 								file: `unused.text`
 							});
 
-							if(hotSourceMapContent && data.map[0])
+							if(hotSourceMapContent && data.map[0]){
 								map.setSourceContent(data.map[0].source,
-									"\n".repeat(data.map[0].originalLine)
+									"\n".repeat(data.map[0].originalLine-1)
 									+ content.split(';{\nif(!window._sf1cmplr)', 1)[0]) + '// This may have additional script for development, added by the compiler'; // Remove additional compiler script
+							}
 
 							// console.log(data.map);
 							for (let a = 0, n=data.map; a < n.length; a++) {
 								const t = n[a];
 								map.addMapping({
 									original: {line: t.originalLine, column: t.originalColumn},
-									generated: {line: t.generatedLine+2, column: t.generatedColumn},
+									generated: {line: t.generatedLine+3, column: t.generatedColumn},
 									source: t.source,
 								});
 							}
