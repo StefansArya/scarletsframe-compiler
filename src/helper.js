@@ -319,7 +319,7 @@ module.exports = {
 
 		// return createDeclaration + createBackup + createReClass;
 
-		content = `;window._sf1cmplr ??= {};let p_sf1cmplr = _sf1cmplr["${fullPath}"] ??= {};` + createDeclaration + content + createBackup + createReClass;
+		content = `;globalThis._sf1cmplr ??= {};let p_sf1cmplr = _sf1cmplr["${fullPath}"] ??= {};` + createDeclaration + content + createBackup + createReClass;
 		return content;
 	}
 };
