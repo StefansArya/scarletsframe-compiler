@@ -33,6 +33,12 @@ function JSWrapperMerge(wrapper, es6Module){
 	});
 }
 
+function pipeCallback(func){
+	return through.obj(function(file, encoding, callback){
+		callback(null, func(file, encoding));
+	});
+};
+
 function jsGetScopeVar(fullPath, wrapped, minify, data, isHot, path){
 	return through.obj(function(file, encoding, callback){
 		if(file.extname !== '.map'){
@@ -220,7 +226,14 @@ function jsTask(path){
 			if(!terser) terser = require('gulp-terser');
 			if(!babel) babel = require('gulp-babel');
 
-			temp = temp.pipe(babel()).on('error', swallowError).pipe(terser()).on('error', swallowError);
+			temp = temp.pipe(babel()).on('error', swallowError)
+				.pipe(pipeCallback(function(file, encoding){
+					if(file.extname === '.js'
+					   && (path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')){
+						file.extname = '.mjs';
+					}
+				}))
+				.pipe(terser()).on('error', swallowError);
 		}
 
 		if(isModule)
