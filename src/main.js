@@ -447,7 +447,7 @@ module.exports = class SFCompiler{
 			}
 
 			// map = JSON.stringify(map);
-			code = code.split('/*# sourceMappingURL')[0] + sourceMapURL;
+			code = code.split('/*# sourceMappingURL')[0] + "\n" + sourceMapURL;
 		}
 
 		callback({

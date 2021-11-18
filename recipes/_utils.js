@@ -10,7 +10,7 @@ module.exports = {
 		return file.join(basePath);
 	},
 	swallowError(error){
-		console.log(error.message);
+		console.log(error);
 		this.emit('end');
 	},
 	versioning(target, prefixStart, timestamp){
