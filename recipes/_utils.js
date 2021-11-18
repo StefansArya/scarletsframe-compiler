@@ -25,8 +25,13 @@ module.exports = {
 				return;
 
 			for (var i = 0, len = files.length; i < len; i++) {
-				if(files[i].indexOf(filename) === 0 && files[i].indexOf(format+'.map') !== -1)
-					fs.unlinkSync(path+files[i]);
+				if(files[i].indexOf(filename) === 0 && files[i].indexOf(format+'.map') !== -1){
+					try{
+						fs.unlinkSync(path+files[i]);
+					} catch(e) {
+						console.error(e);
+					}
+				}
 			}
 		});
 	},
