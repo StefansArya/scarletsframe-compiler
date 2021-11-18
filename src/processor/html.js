@@ -3,6 +3,9 @@
 const htmlmin = require('html-minifier');
 const {diveObject} = require('../helper.js');
 
+// https://stackoverflow.com/a/17843773/6563200
+let matchRegExp = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/((?:g(?:im?|mi?)?|i(?:gm?|mg?)?|m(?:gi?|ig?)?)?)/g;
+
 const empty_array = Object.freeze([]);
 module.exports = function(path, content, callback, offset, options){
 	let result = {lines:1, map: empty_array};
@@ -20,8 +23,21 @@ module.exports = function(path, content, callback, offset, options){
 
 		content = content.replace(/{{.*?({{|}})/gs, function(full){
 			return avoidQuotes(full, function(full){
-				return full.replace(/\/\/.*?$/gm, '').replace(/\/\*.*?\*\//gs, '')
-					.split('<').join('*%1#').split('>').join('*%2#');
+				let temp = [];
+				full = full.replace(matchRegExp, function(full){
+					let i = temp.length;
+					temp.push(full);
+					return `&%${i}*#`;
+				});
+
+				full = full.replace(/\/\/.*?$/gm, '').replace(/\/\*.*?\*\//gs, '')
+					.split('<').join('*%1#')
+					.split('>').join('*%2#')
+					.replace(/&%([0-9]+)\*#/, function(full, index){
+						return temp[+index];
+					});
+
+				return full;
 			});
 		});
 
