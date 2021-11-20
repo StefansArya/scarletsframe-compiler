@@ -248,9 +248,6 @@ function sfTask(path, instance){
 		path.onStart && path.onStart('SF', location);
 		path.sf.onStart && path.sf.onStart(location);
 
-		if(path.versioning)
-			versioning(path.versioning, location+'?', startTime);
-
 		const options = Obj._compiling ? {autoprefixer:true, minify:true} : {};
 		options._opt = path.sf;
 
@@ -319,6 +316,9 @@ function sfTask(path, instance){
 
 				path.onFinish && path.onFinish('SF', location, which);
 				path.sf.onFinish && path.sf.onFinish(location, which);
+
+				if(path.versioning)
+					versioning(path.versioning, `${location}.${which}?`, startTime);
 			}
 
 			for(const key in changes){
