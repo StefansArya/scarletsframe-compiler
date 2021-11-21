@@ -47,6 +47,5 @@ module.exports = function(full, list, root){
 	if(fullMatch)
 		return full;
 
-	console.error("Failed to get relative path for:", full);
-	return 'undefined';
+	throw new Error("Failed to get relative path for: "+full);
 }

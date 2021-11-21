@@ -7,6 +7,7 @@ let { collectSourcePath, swallowError, versioning, removeOldMap, sourceMapBase64
 var sfExt = require('../gulp-sf-ext.js');
 var fs = require('fs');
 var chalk = require('chalk');
+var chokidar = require('chokidar');
 const { SourceMapGenerator } = require('source-map');
 var getRelativePathFromList = require('../sf-relative-path.js');
 
@@ -64,7 +65,7 @@ function addTask(name, obj){
 
 			last = stats.ctimeMs;
 			if(Obj._browserSync && hotReload.sf === true){
-				file = file.split('\\').join('/');
+				file = basePath+file.split('\\').join('/');
 				try{
 					let pendingHTML = [];
 					let pendingHTMLTimer = false;
@@ -179,7 +180,7 @@ function addTask(name, obj){
 
 		// Delete cache
 		function onRemove(file){
-			file = file.split('\\').join('/');
+			file = basePath+file.split('\\').join('/');
 
 			const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 			delete instance.cache[path];
@@ -190,7 +191,9 @@ function addTask(name, obj){
 			}
 		}
 
-		taskList[obj.sf.file] = gulp.watch(obj.sf.combine, obj.sf.opt)
+		let cwd = obj.sf.opt && obj.sf.opt.base;
+
+		taskList[obj.sf.file] = chokidar.watch(obj.sf.combine, {ignoreInitial: true, cwd})
 			.on('add', onChange).on('change', onChange).on('unlink', onRemove)
 			.on('error', console.error);
 

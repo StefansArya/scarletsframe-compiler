@@ -9,6 +9,7 @@ var concat = require('gulp-concat');
 var header = require('gulp-header');
 var fs = require('fs');
 var chalk = require('chalk');
+var chokidar = require('chokidar');
 const { SourceMapGenerator } = require('source-map');
 const JSWrapper = require('../src/js-wrapper.js');
 var getRelativePathFromList = require('../sf-relative-path.js');
@@ -150,7 +151,7 @@ function addTask(name, obj){
 			call();
 		}
 
-		taskList[obj.js.file] = gulp.watch(rootPath)
+		taskList[obj.js.file] = chokidar.watch(rootPath, {ignoreInitial: true})
 			.on('add', onChange)
 			.on('change', onChange)
 			.on('unlink', onChange)

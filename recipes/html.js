@@ -10,6 +10,7 @@ var htmlToJs = require('gulp-html-to-js');
 var header = require('gulp-header');
 var fs = require('fs');
 var chalk = require('chalk');
+var chokidar = require('chokidar');
 var getRelativePathFromList = require('../sf-relative-path.js');
 
 const htmlmin = require('html-minifier');
@@ -60,7 +61,7 @@ function addTask(name, obj){
 				}
 			}
 
-			hasObjStatic = gulp.watch(obj.static)
+			hasObjStatic = chokidar.watch(obj.static, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 
@@ -95,7 +96,7 @@ function addTask(name, obj){
 			call();
 		}
 
-		let _task = taskList[obj.html.file] = gulp.watch(obj.html.combine)
+		let _task = taskList[obj.html.file] = chokidar.watch(obj.html.combine, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 

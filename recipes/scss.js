@@ -9,6 +9,7 @@ var concat = require('gulp-concat');
 var header = require('gulp-header');
 var fs = require('fs');
 var chalk = require('chalk');
+var chokidar = require('chokidar');
 var csso = null;
 var autoprefixer = null;
 var sass = null;
@@ -35,7 +36,7 @@ function addTask(name, obj){
 			call();
 		}
 
-		taskList[obj.scss.file] = gulp.watch(obj.scss.combine)
+		taskList[obj.scss.file] = chokidar.watch(obj.scss.combine, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 
