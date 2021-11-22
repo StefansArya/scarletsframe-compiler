@@ -330,6 +330,8 @@ function sfTask(path, instance){
 			}
 		}
 
+		onFinish.tag = "recipes/sf.js";
+
 		unfinishedTask.add(path);
 		unfinishedTask_++;
 		return gulp.src(path.sf.combine).pipe(sfExt(sfExtOption));

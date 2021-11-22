@@ -108,6 +108,7 @@ module.exports = class SFCompiler{
 		}
 
 		if(onComplete) onComplete();
+		else if(!singleCompile) return false;
 	}
 
 	// Open the source, split it
@@ -288,13 +289,26 @@ module.exports = class SFCompiler{
 				if(debugging)
 					console.log("-- Done:", which, isComplete, `(${processed} / ${content.length})`);
 
-				if(singleCompile && singleCompile.includes(which))
-					callback(data, true, which, isComplete, cached);
-
 				current.path = path;
 				proc.delete(path);
 
-				if(isComplete) that.sourceFinish(callback, singleCompile, onComplete);
+				if(isInCategory(category.css, which))
+					that.sourceChanges.css = true;
+				else if(isInCategory(category.js, which))
+					that.sourceChanges.js = true;
+
+				if(singleCompile && singleCompile.includes(which))
+					callback(data, true, which, isComplete, cached);
+
+				if(isComplete){
+					let success = that.sourceFinish(callback, singleCompile, onComplete);
+
+					if(singleCompile === void 0 && onComplete === void 0 && success === false){
+						if(callback.tag === "recipes/sf.js")
+							callback(that.sourceChanges, true);
+						else callback(data, true, which, isComplete, cached);
+					}
+				}
 			}, lines, that.options, _opt);
 
 			if(extra !== false)
@@ -305,6 +319,7 @@ module.exports = class SFCompiler{
 
 		// Check old category cache that have been deleted on .sf file
 		for(var key in cached){
+			if(key === 'raw') continue;
 			if(!checkNew.has(key))
 				delete cached[key];
 		}
