@@ -156,10 +156,15 @@ function addTask(name, obj){
 			call();
 		}
 
+		let initScan = setTimeout(()=> {
+			console.log("Initial scan was longer than 10sec:", rootPath);
+		}, 10000);
+
 		taskList[obj.js.file] = chokidar.watch(rootPath, {ignoreInitial: true})
 			.on('add', onChange)
 			.on('change', onChange)
 			.on('unlink', onChange)
+			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);
 
 		var isExist = obj.js;

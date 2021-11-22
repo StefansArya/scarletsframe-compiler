@@ -36,8 +36,13 @@ function addTask(name, obj){
 			call();
 		}
 
+		let initScan = setTimeout(()=> {
+			console.log("Initial scan was longer than 10sec:", obj.scss.combine);
+		}, 10000);
+
 		taskList[obj.scss.file] = chokidar.watch(obj.scss.combine, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
+			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);
 
 		var isExist = obj.scss;

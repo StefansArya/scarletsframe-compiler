@@ -96,8 +96,13 @@ function addTask(name, obj){
 			call();
 		}
 
+		let initScan = setTimeout(()=> {
+			console.log("Initial scan was longer than 10sec:", obj.html.combine);
+		}, 10000);
+
 		let _task = taskList[obj.html.file] = chokidar.watch(obj.html.combine, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
+			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);
 
 		_task.hasObjStatic = hasObjStatic;

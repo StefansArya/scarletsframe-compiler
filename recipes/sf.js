@@ -58,14 +58,15 @@ function addTask(name, obj){
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
-		var basePath = obj.sf.opt.base+'/';
+		// var basePath = obj.sf.opt.base+'/';
+		obj.sf.opt.base = '.';
 		function onChange(file, stats){
 			if(last === stats.ctimeMs)
 				return;
 
 			last = stats.ctimeMs;
 			if(Obj._browserSync && hotReload.sf === true){
-				file = basePath+file.split('\\').join('/');
+				file = file.split('\\').join('/');
 				try{
 					let pendingHTML = [];
 					let pendingHTMLTimer = false;
@@ -180,7 +181,7 @@ function addTask(name, obj){
 
 		// Delete cache
 		function onRemove(file){
-			file = basePath+file.split('\\').join('/');
+			file = file.split('\\').join('/');
 
 			const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 			delete instance.cache[path];
@@ -191,10 +192,13 @@ function addTask(name, obj){
 			}
 		}
 
-		let cwd = obj.sf.opt && obj.sf.opt.base;
+		let initScan = setTimeout(()=> {
+			console.log("Initial scan was longer than 10sec:", obj.sf.combine);
+		}, 10000);
 
-		taskList[obj.sf.file] = chokidar.watch(obj.sf.combine, {ignoreInitial: true, cwd})
+		taskList[obj.sf.file] = chokidar.watch(obj.sf.combine, {ignoreInitial: true})
 			.on('add', onChange).on('change', onChange).on('unlink', onRemove)
+			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);
 
 		var isExist = obj.sf;
