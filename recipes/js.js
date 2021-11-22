@@ -36,7 +36,8 @@ function JSWrapperMerge(wrapper, es6Module){
 
 function pipeCallback(func){
 	return through.obj(function(file, encoding, callback){
-		callback(null, func(file, encoding));
+		func(file, encoding);
+		callback(null, file);
 	});
 };
 
@@ -67,8 +68,12 @@ function footer(text){
 
 function changeExt(text){
 	return through.obj(function(file, encoding, callback){
-		if(file.extname !== '.map')
+		if(file.extname !== '.map'){
 			file.extname = text;
+
+			if(file.sourceMap !== void 0 && file.sourceMap.file.slice(-3) === '.js')
+				file.sourceMap.file = file.sourceMap.file.slice(0, -3) + text;
+		}
 
 		callback(null, file);
 	});
@@ -222,18 +227,11 @@ function jsTask(path){
 		}
 		else temp = temp.pipe(JSWrapperMerge(JSWrapper.default));
 
-
 		if(Obj._compiling){
 			if(!terser) terser = require('gulp-terser');
 			if(!babel) babel = require('gulp-babel');
 
 			temp = temp.pipe(babel()).on('error', swallowError)
-				.pipe(pipeCallback(function(file, encoding){
-					if(file.extname === '.js'
-					   && (path.js.wrapped === 'mjs' || path.js.wrapped === 'async-mjs')){
-						file.extname = '.mjs';
-					}
-				}))
 				.pipe(terser()).on('error', swallowError);
 		}
 

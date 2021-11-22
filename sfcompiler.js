@@ -88,8 +88,9 @@ function progressCounter(newline){
 			setTimeout(function(){
 				process.exit();
 			}, 5000);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	hasProgress = true;
@@ -163,11 +164,11 @@ function compileOnly(done, which){
 	}, 500);
 }
 
-gulp.task('compile', (done)=>compileOnly(done)); // all
-gulp.task('compile-js', (done)=>compileOnly(done, 'js'));
-gulp.task('compile-css', (done)=>compileOnly(done, 'css'));
-gulp.task('compile-html', (done)=>compileOnly(done, 'html'));
-gulp.task('compile-sf', (done)=>compileOnly(done, 'sf'));
+gulp.task('compile', done => compileOnly(done)); // all
+gulp.task('compile-js', done => compileOnly(done, 'js'));
+gulp.task('compile-css', done => compileOnly(done, 'css'));
+gulp.task('compile-html', done => compileOnly(done, 'html'));
+gulp.task('compile-sf', done => compileOnly(done, 'sf'));
 
 return Exports;
 };
