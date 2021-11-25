@@ -1,18 +1,18 @@
 module.exports = {
 	'true': [";(function(window, module){'use strict';", `})(
-		typeof window !== 'undefined' ? window : this,
+		typeof globalThis !== 'undefined' ? globalThis : (typeof window !== "undefined" ? window : this),
 		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
 	'async': [";(async function(window, module){'use strict';", `})(
-		typeof window !== 'undefined' ? window : this,
+		typeof globalThis !== 'undefined' ? globalThis : (typeof window !== "undefined" ? window : this),
 		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
-	'mjs': ['"use strict";', ''],
+	'mjs': ['"use strict";if(typeof window === "undefined"){var window = globalThis};', ''],
 	'default': [';{', '};'],
 
-	'es6-function': ["if(typeof window === 'undefined'){var window = this}; async function _init_(){'use strict'; let module = {exports:{}};", ';return module.exports}; export default _init_;'], // Don't change the '_init_'
+	'es6-function': ["if(typeof window === 'undefined'){var window = globalThis}; async function _init_(){'use strict'; let module = {exports:{}};", ';return module.exports}; export default _init_;'], // Don't change the '_init_'
 
 	'_imports': `async function imports(urls){
 		if(typeof sf !== 'undefined' && sf.loader !== void 0)
