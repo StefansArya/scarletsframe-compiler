@@ -1,6 +1,9 @@
 const regex = /(?:^|^ |^export )(?:(class|function)\s+(\w+)|(var|let|const)\s+([\w\[,\]{}_\s:]+?)\s?(?:[=;]|$))/gms;
 // Group 1,3 (class/var), Group 2,4 (name)
 
+// https://stackoverflow.com/a/17843773/6563200
+let matchRegExp = /\/((?![*+?])(?:[^\r\n\[/\\]|\\.|\[(?:[^\r\n\]\\]|\\.)*\])+)\/((?:g(?:im?|mi?)?|i(?:gm?|mg?)?|m(?:gi?|ig?)?)?)/g;
+
 const regexDeconstructor = /\w+(?::(.*?)(?:[\]},])|)/gms;
 // Full (name), Group 1 (alias)
 
@@ -174,7 +177,11 @@ module.exports = {
 	jsGetScopeVar(content, fullPath, wrapped, minify, save, isHot, path, readOnly){
 		if(minify) return content; // We only use jsGetScopeVar on development mode only
 
-		let cleanContent = content.replace(/\/\*.*?\*\//gs, '').replace(/\/\/.*?$/gm, '').replace(/([`'"])(?:\1|[\s\S]*?[^\\]\1)/g, '');
+		let cleanContent = content
+			.replace(/\/\*.*?\*\//gs, '')
+			.replace(/\/\/.*?$/gm, '')
+			.replace(matchRegExp, '')
+			// .replace(/([`'"])(?:\1|[\s\S]*?[^\\]\1)/g, '');
 
 		var has = false, recreateRegExp = false;
 		const reassign = new Set();
@@ -312,7 +319,7 @@ module.exports = {
 			if(configNewClass.length !== 0){
 				createReClass += `;{
 	let sf$filePath = {configurable:true, value:"${path.base+'/'+path.fileName}"};
-	[${configNewClass.slice(0, -1)}].forEach(v=> Object.defineProperty(v.prototype, "sf$filePath", sf$filePath);
+	[${configNewClass.slice(0, -1)}].forEach(v=> Object.defineProperty(v.prototype, "sf$filePath", sf$filePath));
 };`;
 			}
 		}
