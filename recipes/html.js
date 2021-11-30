@@ -61,7 +61,10 @@ function addTask(name, obj){
 				}
 			}
 
-			hasObjStatic = chokidar.watch(obj.static, {ignoreInitial: true})
+			hasObjStatic = chokidar.watch(obj.static, {
+				ignoreInitial: true,
+				ignored: (path => path.includes('node_modules') || path.includes('.git') || path.includes('turbo_modules'))
+			})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('error', console.error);
 
@@ -97,10 +100,13 @@ function addTask(name, obj){
 		}
 
 		let initScan = setTimeout(()=> {
-			console.log("Initial scan was longer than 10sec:", obj.html.combine);
-		}, 10000);
+			console.log("Initial scan was longer than 1min:", obj.html.combine);
+		}, 60000);
 
-		let _task = taskList[obj.html.file] = chokidar.watch(obj.html.combine, {ignoreInitial: true})
+		let _task = taskList[obj.html.file] = chokidar.watch(obj.html.combine, {
+				ignoreInitial: true,
+				ignored: (path => path.includes('node_modules') || path.includes('.git') || path.includes('turbo_modules'))
+			})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);

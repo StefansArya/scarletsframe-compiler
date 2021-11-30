@@ -157,10 +157,13 @@ function addTask(name, obj){
 		}
 
 		let initScan = setTimeout(()=> {
-			console.log("Initial scan was longer than 10sec:", rootPath);
-		}, 10000);
+			console.log("Initial scan was longer than 1min:", rootPath);
+		}, 60000);
 
-		taskList[obj.js.file] = chokidar.watch(rootPath, {ignoreInitial: true})
+		taskList[obj.js.file] = chokidar.watch(rootPath, {
+				ignoreInitial: true,
+				ignored: (path => path.includes('node_modules') || path.includes('.git') || path.includes('turbo_modules'))
+			})
 			.on('add', onChange)
 			.on('change', onChange)
 			.on('unlink', onChange)
@@ -217,7 +220,7 @@ function jsTask(path){
 			if(path.js._tempData === void 0)
 				path.js._tempData = {keys:[], types:{}};
 
-			temp = temp.pipe(jsGetScopeVar(path.js.file, path.js.wrapped, Obj._compiling, path.js._tempData, false, void 0));
+			temp = temp.pipe(jsGetScopeVar(path.js.file, path.js.wrapped, false, path.js._tempData, false, void 0));
 		}
 
 		if(path.js.wrapped !== void 0){

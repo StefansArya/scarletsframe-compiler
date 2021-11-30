@@ -37,10 +37,13 @@ function addTask(name, obj){
 		}
 
 		let initScan = setTimeout(()=> {
-			console.log("Initial scan was longer than 10sec:", obj.scss.combine);
-		}, 10000);
+			console.log("Initial scan was longer than 1min:", obj.scss.combine);
+		}, 60000);
 
-		taskList[obj.scss.file] = chokidar.watch(obj.scss.combine, {ignoreInitial: true})
+		taskList[obj.scss.file] = chokidar.watch(obj.scss.combine, {
+				ignoreInitial: true,
+				ignored: (path => path.includes('node_modules') || path.includes('.git') || path.includes('turbo_modules'))
+			})
 			.on('add', onChange).on('change', onChange).on('unlink', onChange)
 			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);

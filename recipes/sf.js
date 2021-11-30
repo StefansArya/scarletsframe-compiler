@@ -193,10 +193,13 @@ function addTask(name, obj){
 		}
 
 		let initScan = setTimeout(()=> {
-			console.log("Initial scan was longer than 10sec:", obj.sf.combine);
-		}, 10000);
+			console.log("Initial scan was longer than 1min:", obj.sf.combine);
+		}, 60000);
 
-		taskList[obj.sf.file] = chokidar.watch(obj.sf.combine, {ignoreInitial: true})
+		taskList[obj.sf.file] = chokidar.watch(obj.sf.combine, {
+				ignoreInitial: true,
+				ignored: (path => path.includes('node_modules') || path.includes('.git') || path.includes('turbo_modules'))
+			})
 			.on('add', onChange).on('change', onChange).on('unlink', onRemove)
 			.on('ready', () => clearTimeout(initScan))
 			.on('error', console.error);
@@ -292,8 +295,10 @@ function sfTask(path, instance){
 				delete sfExtOption.data;
 			}
 
-			unfinishedTask.delete(path);
-			unfinishedTask_--;
+			if(unfinishedTask.has(path)){
+				unfinishedTask_--;
+				unfinishedTask.delete(path);
+			}
 
 			if(process.env.debug)
 				console.log(1, changes);
@@ -336,8 +341,11 @@ function sfTask(path, instance){
 
 		onFinish.tag = "recipes/sf.js";
 
-		unfinishedTask.add(path);
-		unfinishedTask_++;
+		if(unfinishedTask.has(path)){
+			unfinishedTask.add(path);
+			unfinishedTask_++;
+		}
+
 		return gulp.src(path.sf.combine).pipe(sfExt(sfExtOption));
 	}
 }
