@@ -178,9 +178,12 @@ module.exports = {
 		if(minify) return content; // We only use jsGetScopeVar on development mode only
 
 		let cleanContent = content
+			.replace(/\r/g, '')
 			.replace(/\/\*.*?\*\//gs, '')
 			.replace(/\/\/.*?$/gm, '')
 			.replace(matchRegExp, '')
+			.replace(/\\\n/g, '\\\n-')
+			.replace(/`(?:`|[\s\S]*?[^\\]`)/g, '');
 			// .replace(/([`'"])(?:\1|[\s\S]*?[^\\]\1)/g, '');
 
 		var has = false, recreateRegExp = false;
@@ -246,7 +249,7 @@ module.exports = {
 		});
 
 		if(recreateRegExp)
-			save.keysRegex = RegExp('\\b('+save.keys.sort((a,b)=> b.length - a.length).join('|')+')(?:\\s?(=)|\\b)', 'g');
+			save.keysRegex = RegExp('(?:^|\\s)('+save.keys.sort((a,b)=> b.length - a.length).join('|')+')(?:\\s?(=)|\\b)', 'g');
 			// Group 1 (name), Group 2 (re-assigned?)
 
 		let missing = new Set();
