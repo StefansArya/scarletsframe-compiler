@@ -147,6 +147,7 @@ function addTask(name, obj){
 					fileName: relativePath,
 					base: file.replace(relativePath, ''),
 				});
+				changed = changed.replace(/import\.meta/g, '({})');
 				changed += sourceMapBase64(map.toString());
 
 				Obj._browserSync.sockets.emit('sf-hot-js', changed);
