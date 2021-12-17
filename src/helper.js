@@ -286,7 +286,6 @@ module.exports = {
 		if(declareTemp.let !== '')
 			createDeclaration += `;let {${declareTemp.let.slice(0, -1)}}=p_sf1cmplr;`;
 
-
 		let newClass = new Set();
 		let createBackup = ''; // Variable defined
 		for(let key of reassign){
@@ -296,15 +295,24 @@ module.exports = {
 				newClass.add(key);
 		}
 
-		if(createBackup.length !== 0)
+		for(let key of reclass)
+			createBackup += `${key},`;
+
+		if(createBackup.length !== 0){
 			createBackup = `;Object.assign(p_sf1cmplr,{${createBackup.slice(0, -1)}});`;
+			if(content.includes('import.meta'))
+				createBackup += 'p_sf1cmplr.__import_meta = import.meta;';
+		}
 
 		let createReClass = ''; // Redefine class
 		if(isHot){
-			for(let key of reclass){
+			for(let key of reclass)
 				createReClass += `[${key}, $_${key}],`;
-				content = content.split('class '+key+' ').join('class $_'+key+' ');
-			}
+
+			let regexp = new RegExp('class ('+([...reclass]).join('|')+')(\\s+{|{)', 'g');
+			content = content.replace(regexp, function(full, match, other){
+				return 'class $_'+match+other;
+			});
 
 			if(createReClass.length !== 0){
 				createReClass = `;[${createReClass.slice(0, -1)}].forEach(([orig,news])=>{
