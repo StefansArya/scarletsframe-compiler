@@ -1,10 +1,10 @@
 module.exports = {
-	'true': [";(function(window, module){'use strict';", `})(
+	'true': [";(function(window, module){'use strict'; if(module.exports && module.exports !== globalThis)Object.defineProperty(module.exports, '__esModule', { value: true });", `})(
 		typeof globalThis !== 'undefined' ? globalThis : (typeof window !== "undefined" ? window : this),
 		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
 
-	'async': [";(async function(window, module){'use strict';", `})(
+	'async': [";(async function(window, module){'use strict'; if(module.exports && module.exports !== globalThis)Object.defineProperty(module.exports, '__esModule', { value: true });", `})(
 		typeof globalThis !== 'undefined' ? globalThis : (typeof window !== "undefined" ? window : this),
 		typeof module !== 'undefined' ? module : {exports: this});`.replace(/[\n\t]+/g, ''),
 	],
