@@ -19,30 +19,34 @@ module.exports = function(path, content, callback, offset, options){
 		content = content.replace(/{\[(.*?)\]}/gs, function(full, content){
 			temp.push(`{[${content.trim()}]}`);
 			return '&$;'+(temp.length-1)+'$;&';
-		});
+		})
 
-		content = content.replace(/{{.*?({{|}})/gs, function(full){
-			return avoidQuotes(full, function(full){
-				let temp = [];
-				full = full.replace(matchRegExp, function(full){
-					let i = temp.length;
-					temp.push(full);
-					return `&%${i}*#`;
-				});
+		// Remove space
+		.split('{{ ').join('{{').split(' }}').join('}}')
 
-				full = full.replace(/\/\/.*?$/gm, '').replace(/\/\*.*?\*\//gs, '')
-					.split('<').join('*%1#')
-					.split('>').join('*%2#')
-					.replace(/&%([0-9]+)\*#/, function(full, index){
-						return temp[+index];
-					});
-
-				return full;
+		// Hide mustache
+		.replace(/{{.*?({{|}})/gs, function(full){
+			let temp = [];
+			full = full.replace(matchRegExp, function(full){
+				let i = temp.length;
+				temp.push(full);
+				return `&%${i}*#`;
 			});
-		});
+
+			return avoidQuotes(full, function(full){
+				return full
+					.replace(/\/\/.*?$/gm, '')
+					.replace(/\/\*.*?\*\//gs, '');
+			})
+			.replace(/&%([0-9]+)\*#/, function(full, index){
+				return temp[+index];
+			})
+			.split('<').join('*%1#')
+			.split('>').join('*%2#');
+		})
 
 		// Put back enclosed tag
-		content = content.replace(/&\$;([0-9]+)\$;&/g, function(full, index){
+		.replace(/&\$;([0-9]+)\$;&/g, function(full, index){
 			return temp[index];
 		});
 
@@ -53,7 +57,7 @@ module.exports = function(path, content, callback, offset, options){
 		});
 	}
 
-	const html = JSON.stringify(content).split('{{ ').join('{{').split(' }}').join('}}');
+	const html = JSON.stringify(content);
 
 	let prefix = options.htmlPrefix || '';
 	if(options.htmlPrefix) prefix += '/';
