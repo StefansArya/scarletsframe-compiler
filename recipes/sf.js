@@ -158,7 +158,7 @@ function addTask(name, obj){
 							return;
 						}
 
-						changed = changed.replace(/import\.meta/g, '({})');
+						content = content.replace(/import\.meta/g, 'p_sf1cmplr.__import_meta');
 						Obj._browserSync.sockets.emit('sf-hot-js', content);
 						Obj._browserSync.notify("JavaScript Reloaded");
 
