@@ -4,7 +4,7 @@ const {SourceMapGenerator, SourceMapConsumer} = require('source-map');
 const {createTreeDiver} = require('./helper.js');
 const SFCompilerHelper = require('./helper.js');
 const JSWrapper = require('./js-wrapper.js');
-// var mergeMap = require('merge-source-map');
+// var mergeMap = require('source-map-merger');
 var debugging = false;
 
 // Lazy load
@@ -348,8 +348,9 @@ module.exports = class SFCompiler{
 			currentLines = options._opt.header.split('\n').length+1;
 		}
 
+		const mappingURL = `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`;
 		var map = new SourceMapGenerator({
-			file: `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`
+			file: mappingURL
 		});
 
 		for(const path in cache){
@@ -376,7 +377,7 @@ module.exports = class SFCompiler{
 				}
 
 				// console.log(t.generatedLine, currentLines);
-			    currentLines += current.lines;
+				currentLines += current.lines;
 				code += current.content+'\n';
 			}
 		}
@@ -412,7 +413,6 @@ module.exports = class SFCompiler{
 			else code = JSWrapperMerge(JSWrapper.default, code);
 		}
 
-		const mappingURL = `${distName}.${which === 'js' ? ((options._opt.wrapped === 'mjs' || options._opt.wrapped === 'async-mjs') ? 'mjs' : 'js') : which}`;
 		const sourceMapURL = which === 'js'
 			? `//# sourceMappingURL=${mappingURL}.map`
 			: `/*# sourceMappingURL=${mappingURL}.map */`;
@@ -427,11 +427,12 @@ module.exports = class SFCompiler{
 
 			const result = await postcss([autoprefixer]).process(code, {
 				from: void 0,
-				// to: mappingURL
+				// to: mappingURL,
+				map: { annotation: false, prev: map.toString(), inline: false },
 			});
 
-			// map = mergeMap(JSON.parse(map.toString()), JSON.parse(result.map.toString()));
-			// code = result.css.split('/*# sourceMappingURL')[0] + sourceMapURL;
+			code = result.css;
+			map = result.map;
 		}
 
 		if(options.minify){
@@ -446,19 +447,29 @@ module.exports = class SFCompiler{
 					sourceMaps: true
 				});
 
-				const result = await terser.minify(babeled.code);
-				code = result.code;
-				map = JSON.stringify(babeled.map);
+				const result = await terser.minify(babeled.code, {
+					sourceMap: {content: babeled.map}
+				});
 
-				// map = mergeMap(babeled.map, JSON.parse(result.map));
+				code = result.code;
+				map = result.map;
 			}
 			else{
 				if(csso === void 0)
 					csso = require('csso');
 
-				const result = await csso.minify(code);
+				const result = await csso.minify(code, {
+					filename: mappingURL,
+					restructure: true,
+					sourceMap: true,
+				});
+
+				let consumer = await new SourceMapConsumer(map.toString());
+				result.map.applySourceMap(consumer, mappingURL);
+				consumer.destroy();
+
 				code = result.css;
-				// map = mergeMap(JSON.parse(map.toString()), JSON.parse(result.map));
+				map = result.map;
 			}
 
 			// map = JSON.stringify(map);
