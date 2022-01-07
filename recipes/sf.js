@@ -71,7 +71,8 @@ function addTask(name, obj){
 					let pendingHTML = [];
 					let pendingHTMLTimer = false;
 					let pendingHTMLSend = ()=> {
-						Obj._browserSync.sockets.emit('sf-hot-js', pendingHTML.join(';'));
+						let content = ';!function(){'+pendingHTML.join('\n}(); !function(){')+'\n}();';
+						Obj._browserSync.sockets.emit('sf-hot-js', content);
 						Obj._browserSync.notify("HTML Reloaded");
 						pendingHTML.length = 0;
 					};
