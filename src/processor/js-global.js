@@ -33,7 +33,7 @@ module.exports = function(path, content, callback, offset, options, obj){
 			originalColumn: 0,
 			generatedLine: i,
 			generatedColumn: 0,
-			source: path.fileName
+			source: path.relativePath
 		});
 	}
 

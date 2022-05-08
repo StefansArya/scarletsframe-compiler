@@ -16,8 +16,11 @@ module.exports = function(sockets, that, editor_){
 }
 
 function openEditor(data, source, propName, rawText){
-	var fullPath = `${process.cwd()}/${source.base}/${data.source}`;
+	var fullPath = `${process.cwd()}/${data.source}`;
 	var lines = `:${data.line}:${data.column}`;
+
+	if(!fs.existsSync(fullPath))
+		return console.error(`[${chalk.red('Error')}] path not found: ${fullPath}`);
 
 	var temp, line, index, endIndex;
 	if(propName !== void 0 || rawText !== void 0){

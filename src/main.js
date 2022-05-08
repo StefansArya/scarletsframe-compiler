@@ -177,7 +177,8 @@ module.exports = class SFCompiler{
 		let splitPath = {
 			fileName:path,
 			base:_opt.opt.base,
-			directory:root
+			directory:root,
+			relativePath: (root+path).replace(process.cwd().split('\\').join('/')+'/', ''),
 		};
 
 		let hasHTML = -1;

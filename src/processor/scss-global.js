@@ -9,7 +9,7 @@ module.exports = function(path, content, callback, offset, options){
 	}
 
 	sass.render({
-		file:path.fileName,
+		file: path.fileName,
 		data: content,
 		includePaths: [path.directory],
 		sourceMap: 'nyam' // /*# sourceMappingURL=nyam */
@@ -25,7 +25,7 @@ module.exports = function(path, content, callback, offset, options){
 		consumer.eachMapping((m)=> {
 			map.push(m);
 			m.originalLine += offset;
-			m.source = path.fileName;
+			m.source = path.relativePath;
 		});
 
 		consumer.destroy();
