@@ -15,6 +15,13 @@ var getRelativePathFromList = require('../sf-relative-path.js');
 
 const htmlmin = require('html-minifier');
 var through = require('through2');
+function pipeCallback(func){
+	return through.obj(function(file, encoding, callback){
+		func(file, encoding);
+		callback(null, file);
+	});
+};
+
 function minifyHTML(){
 	return through.obj(function(file, encoding, callback){
 		let content = file.contents.toString('utf8').replace(/{{[\s\S]*?}}/g, function(full){
@@ -79,12 +86,20 @@ function addTask(name, obj){
 
 			last = stats.ctimeMs;
 			SFLang.scan(file, stats);
+				
+			let fileContent;
+			let fileModify =  obj.html.onEvent?.fileModify;
+
+			if(fileModify){
+				fileContent ??= fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+				fileModify(fileContent, file);
+			}
 
 			if(Obj._browserSync && hotReload.html === true){
 				file = file.split('\\').join('/');
-				var content = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
-				content = content.replace(/\r/g, "");
+				var content = fileContent ??= fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 
+				content = content.replace(/\r/g, "");
 				file = getRelativePathFromList(file, obj.html.combine, obj.html.root);
 
 				if(obj.html.prefix !== void 0)
@@ -158,9 +173,19 @@ function htmlTask(path){
 		if(includeSourceMap)
 			src = src.pipe(sourcemaps.write('.'));
 
+		if(path.html.onEvent?.fileCompiled){
+			temp = temp.pipe(pipeCallback(function(file){
+				path.html.onEvent.fileCompiled(file.contents.toString());
+			}));
+		}
+
 		return src.pipe(gulp.dest(path.html.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.html === 0)
 				obj.onCompiled('HTML');
+
+
+			path.html.onEvent?.fileCompiled(fs.readFileSync(location, 'utf8'));
+			path.html.onEvent?.scanFinish?.();
 
 			path.onFinish && path.onFinish('HTML', location);
 			path.html.onFinish && path.html.onFinish(location);

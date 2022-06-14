@@ -11,6 +11,14 @@ var chokidar = require('chokidar');
 const { SourceMapGenerator } = require('source-map');
 var getRelativePathFromList = require('../sf-relative-path.js');
 
+var through = require('through2');
+function pipeCallback(func){
+	return through.obj(function(file, encoding, callback){
+		func(file, encoding);
+		callback(null, file);
+	});
+};
+
 const SFCompiler = require('../src/main.js');
 const SFCompilerHelper = require('../src/helper.js');
 const SFInstantReload = ['js', 'js_global', 'html'];
@@ -64,6 +72,14 @@ function addTask(name, obj){
 			if(last === stats.ctimeMs)
 				return;
 
+			let fileContent;
+			let fileModify =  obj.sf.onEvent?.fileModify;
+
+			if(fileModify){
+				fileContent ??= fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+				fileModify(fileContent, file);
+			}
+
 			last = stats.ctimeMs;
 			if(Obj._browserSync && hotReload.sf === true){
 				file = file.split('\\').join('/');
@@ -79,6 +95,7 @@ function addTask(name, obj){
 
 					const path = getRelativePathFromList(file, obj.sf.combine, obj.sf.root);
 					const root = file.replace(path, '');
+
 					instance.loadSource(root, path, function(data, isData, which, isComplete, cache){
 						if(!isData){
 							if(isComplete && pendingHTML.length !== 0)
@@ -327,6 +344,10 @@ function sfTask(path, instance){
 
 				if(obj.onCompiled && --waitCount === 0 && --firstCompile.sf === 0)
 					obj.onCompiled('SF');
+
+
+				path.sf.onEvent?.fileCompiled(code);
+				path.sf.onEvent?.scanFinish?.();
 
 				path.onFinish && path.onFinish('SF', location, which);
 				path.sf.onFinish && path.sf.onFinish(location, which);

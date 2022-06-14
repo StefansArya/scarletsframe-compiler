@@ -14,6 +14,14 @@ var csso = null;
 var autoprefixer = null;
 var sass = null;
 
+var through = require('through2');
+function pipeCallback(func){
+	return through.obj(function(file, encoding, callback){
+		func(file, encoding);
+		callback(null, file);
+	});
+};
+
 var taskList = {};
 function addTask(name, obj){
 	var last = 0;
@@ -31,6 +39,10 @@ function addTask(name, obj){
 
 			if(last === stats.ctimeMs)
 				return;
+
+			let fileModify = obj.scss.onEvent?.fileModify;
+			if(fileModify != null)
+				fileModify(fs.readFileSync(file), file);
 
 			last = stats.ctimeMs;
 			call();
@@ -106,6 +118,9 @@ function scssTask(path){
 		temp = temp.pipe(gulp.dest(path.scss.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.css === 0)
 				obj.onCompiled('SCSS');
+
+			path.scss.onEvent?.fileCompiled(fs.readFileSync(location, 'utf8'));
+			path.scss.onEvent?.scanFinish?.();
 
 			path.onFinish && path.onFinish('SCSS', location);
 			path.scss.onFinish && path.scss.onFinish(location);

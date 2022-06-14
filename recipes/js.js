@@ -18,6 +18,13 @@ var terser = null;
 var babel = null;
 
 var through = require('through2');
+function pipeCallback(func){
+	return through.obj(function(file, encoding, callback){
+		func(file, encoding);
+		callback(null, file);
+	});
+};
+
 function JSWrapperMerge(wrapper, es6Module){
 	return through.obj(function(file, encoding, callback){
 		let temp = [
@@ -33,13 +40,6 @@ function JSWrapperMerge(wrapper, es6Module){
 		callback(null, file);
 	});
 }
-
-function pipeCallback(func){
-	return through.obj(function(file, encoding, callback){
-		func(file, encoding);
-		callback(null, file);
-	});
-};
 
 function jsGetScopeVar(fullPath, wrapped, minify, data, isHot, path){
 	return through.obj(function(file, encoding, callback){
@@ -119,9 +119,17 @@ function addTask(name, obj){
 			if(SFLang.scan(file, stats))
 				return;
 
+			let fileContent;
+			let fileModify =  obj.js.onEvent?.fileModify;
+
+			if(fileModify){
+				fileContent ??= fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+				fileModify(fileContent, file);
+			}
+
 			if(Obj._browserSync && hotReload.js === true){
 				let relativePath = getRelativePathFromList(file, rootPath, obj.js.root);
-				var changed = fs.readFileSync(file, {encoding:'utf8', flag:'r'});
+				var changed = fileContent ??= fs.readFileSync(file, {encoding:'utf8', flag:'r'});
 
 				// Generate sourcemap
 				var map = new SourceMapGenerator({
@@ -262,6 +270,9 @@ function jsTask(path){
 		temp = temp.pipe(gulp.dest(path.js.folder)).on('end', function(){
 			if(obj.onCompiled && --firstCompile.js === 0)
 				obj.onCompiled('JS');
+
+			path.js.onEvent?.fileCompiled(fs.readFileSync(location, 'utf8'));
+			path.js.onEvent?.scanFinish?.();
 
 			path.onFinish && path.onFinish('JS', location);
 			path.js.onFinish && path.js.onFinish(location);
