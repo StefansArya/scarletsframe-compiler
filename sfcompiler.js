@@ -81,7 +81,19 @@ function init(only){
 }
 
 let hasProgress = false;
+let lastProgress = '';
+let lastProgressWait = 600; // 5 mins (interval 500ms, 300s * 0.5s = 600)
 function progressCounter(newline){
+	let temp_ = `${firstCompile.js}${firstCompile.css}${firstCompile.html}${firstCompile.sf}`;
+	if(lastProgress !== temp_) lastProgressWait = 600;
+	else {
+		lastProgressWait--;
+		if(lastProgressWait <= 0){
+			console.error("Compiler was terminated because there are no progress has been detected after 5 mins");
+			process.exit(1);
+		}
+	}
+
 	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0){
 		if(hasProgress){
 			console.log("Finished, terminating in 5 second if not closed");
@@ -144,6 +156,11 @@ gulp.task('default', function(done){
 	browserSync = obj._browserSync = browserSync.init(obj.browserSync, function(){
 		require('./src/browser-cmd.js')(browserSync.sockets, collectSourcePath, obj.editor || 'sublime');
 	});
+
+	Exports.socketSync = function(event, data, notify){
+		browserSync.sockets.emit(event, data);
+		browserSync.notify(notify || "socketSync");
+	};
 });
 
 // === Compiling Recipe ===
