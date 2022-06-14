@@ -28,7 +28,7 @@ module.exports = function(path, content, callback, offset, options){
 			m.source = path.relativePath;
 		});
 
-		consumer.destroy?.();
+		consumer.destroy();
 
 		const content = result.css.toString('utf8').split('/*# sourceMappingURL')[0];
 		const lines = content.split('\n').length;
