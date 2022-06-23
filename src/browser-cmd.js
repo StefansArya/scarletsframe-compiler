@@ -16,13 +16,13 @@ module.exports = function(sockets, that, editor_){
 }
 
 function openEditor(data, source, propName, rawText){
-	var fullPath = `${process.cwd()}/${data.source}`;
+	var fullPath = `${process.cwd()}/${(source.base && !data.source.startsWith(source.base+'/') ? (source.base+'/') : '') + data.source}`;
 	var lines = `:${data.line}:${data.column}`;
 
 	if(!fs.existsSync(fullPath))
 		return console.error(`[${chalk.red('Error')}] path not found: ${fullPath}`);
 
-	var temp, line, index, endIndex;
+	var temp, line, index, endIndex = -1;
 	if(propName !== void 0 || rawText !== void 0){
 		temp = fs.readFileSync(fullPath, 'utf8');
 		line = data.line;
@@ -36,7 +36,8 @@ function openEditor(data, source, propName, rawText){
 			var propName_ = propName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 			endIndex = temp.search(RegExp(`[. \\t](?:${propName_}(?:\\s+|)=|${propName_}(?:\\s+|)\\((?:|[^)]+)\\)(?:\\s+|){)`, 's'), index);
 		}
-		else if(rawText !== void 0)
+
+		if(endIndex === -1 && rawText !== void 0)
 			endIndex = temp.indexOf(rawText, index);
 
 		lines = `:${temp.slice(index, endIndex).split('\n').length || 1}:1`;
@@ -83,6 +84,8 @@ function openSource(data){
 	var target = {line:+line, column:+column};
 
 	var source = collectSourcePath[path];
+	if(!source) source = collectSourcePath[process.cwd()+'/'+path];
+	if(!source) source = collectSourcePath[process.cwd()+'/'+path.replace(/\.mjs$/m, '.js')];
 	if(!source) return console.error(`The path was not recognized '${path}'`);
 
 	readSourceMap(source.distPath+'.map', target, function(data){
@@ -96,6 +99,10 @@ function readSourceMap(path, target, callback){
 	}
 
 	SourceMapConsumer.with(JSON.parse(data), null, function(consumer){
-		callback(consumer.originalPositionFor(target));
+		let temp = consumer.originalPositionFor(target);
+		if(temp.source == null)
+			return console.error("Unable to find source file");
+	
+		callback(temp);
 	});
 }
