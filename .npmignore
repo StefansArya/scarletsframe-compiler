@@ -1,4 +1,5 @@
 tests
+syntax-highlighter
 example
 .git
 pnpm-lock.yaml
