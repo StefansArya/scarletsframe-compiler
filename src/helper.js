@@ -281,10 +281,12 @@ module.exports = {
 			else declareTemp.let += key+',';
 		}
 
-		if(declareTemp.const !== '')
-			createDeclaration += `;const {${declareTemp.const.slice(0, -1)}}=p_sf1cmplr;`;
-		if(declareTemp.let !== '')
-			createDeclaration += `;let {${declareTemp.let.slice(0, -1)}}=p_sf1cmplr;`;
+		if(isHot){
+			if(declareTemp.const !== '')
+				createDeclaration += `;const {${declareTemp.const.slice(0, -1)}}=p_sf1cmplr;`;
+			if(declareTemp.let !== '')
+				createDeclaration += `;let {${declareTemp.let.slice(0, -1)}}=p_sf1cmplr;`;
+		}
 
 		let newClass = new Set();
 		let createBackup = ''; // Variable defined

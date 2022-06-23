@@ -82,18 +82,19 @@ function init(only){
 
 let hasProgress = false;
 let lastProgress = '';
-let lastProgressWait = 600; // 5 mins (interval 500ms, 300s * 0.5s = 600)
+let lastProgressWait = 1200; // 10 mins (interval 500ms, 600s / 0.5s = 1200)
 function progressCounter(newline){
 	let temp_ = `${firstCompile.js}${firstCompile.css}${firstCompile.html}${firstCompile.sf}`;
-	if(lastProgress !== temp_) lastProgressWait = 600;
+	if(lastProgress !== temp_) lastProgressWait = 1200;
 	else {
 		lastProgressWait--;
 		if(lastProgressWait <= 0){
-			console.error("Compiler was terminated because there are no progress has been detected after 5 mins");
+			console.error("Compiler was terminated because there are no progress has been detected after 10 mins");
 			process.exit(1);
 		}
 	}
 
+	lastProgress = temp_;
 	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0){
 		if(hasProgress){
 			console.log("Finished, terminating in 5 second if not closed");
