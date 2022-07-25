@@ -25,6 +25,13 @@ function pipeCallback(func){
 	});
 };
 
+function getRawContent(call){
+	return through.obj(function(file, encoding, callback){
+		call(file.contents);
+		callback(null, file);
+	});
+}
+
 function JSWrapperMerge(wrapper, es6Module){
 	return through.obj(function(file, encoding, callback){
 		let temp = [
@@ -244,9 +251,14 @@ function jsTask(path){
 		}
 		else temp = temp.pipe(JSWrapperMerge(JSWrapper.default));
 
+		let rawContent;
 		if(Obj._compiling){
 			if(!terser) terser = require('gulp-terser');
 			if(!babel) babel = require('gulp-babel');
+
+			temp = temp.pipe(getRawContent(function(raw){
+				rawContent = raw.toString('utf8');
+			}));
 
 			temp = temp.pipe(babel()).on('error', swallowError)
 				.pipe(terser()).on('error', swallowError);
@@ -271,7 +283,7 @@ function jsTask(path){
 			if(obj.onCompiled && --firstCompile.js === 0)
 				obj.onCompiled('JS');
 
-			path.js.onEvent?.fileCompiled(fs.readFileSync(location, 'utf8'));
+			path.js.onEvent?.fileCompiled(fs.readFileSync(location, 'utf8'), rawContent);
 			path.js.onEvent?.scanFinish?.();
 
 			path.onFinish && path.onFinish('JS', location);

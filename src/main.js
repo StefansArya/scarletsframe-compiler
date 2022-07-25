@@ -436,6 +436,7 @@ module.exports = class SFCompiler{
 			map = result.map;
 		}
 
+		let rawCode;
 		if(options.minify){
 			if(which === 'js'){
 				if(terser === void 0){
@@ -443,6 +444,7 @@ module.exports = class SFCompiler{
 					babel = require('@babel/core');
 				}
 
+				rawCode = code;
 				const babeled = await babel.transform(code, {
 					inputSourceMap: map,
 					sourceMaps: true
@@ -482,6 +484,7 @@ module.exports = class SFCompiler{
 			distName,
 			which,
 
+			rawCode,
 			code,
 			map: map.toString()
 		});

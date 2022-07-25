@@ -325,7 +325,7 @@ function sfTask(path, instance){
 			let waitCount = changes.js && changes.css ? 2 : 1;
 			function extraction(data){
 				if(data === false) return;
-				let {sourceRoot, distName, which, code, map} = data;
+				let {sourceRoot, distName, which, code, rawCode, map} = data;
 
 				if((path.sf.wrapped === 'mjs' || path.sf.wrapped === 'async-mjs') && which === 'js')
 					which = 'mjs';
@@ -346,7 +346,7 @@ function sfTask(path, instance){
 					obj.onCompiled('SF');
 
 
-				path.sf.onEvent?.fileCompiled(code);
+				path.sf.onEvent?.fileCompiled(code, rawCode);
 				path.sf.onEvent?.scanFinish?.();
 
 				path.onFinish && path.onFinish('SF', location, which);
