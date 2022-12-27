@@ -305,9 +305,7 @@ module.exports = class SFCompiler{
 					let success = that.sourceFinish(callback, singleCompile, onComplete);
 
 					if(singleCompile === void 0 && onComplete === void 0 && success === false){
-						if(callback.tag === "recipes/sf.js")
-							callback(that.sourceChanges, true);
-						else callback(data, true, which, isComplete, cached);
+						callback(that.sourceChanges, true, which, isComplete, cached);
 					}
 				}
 			}, lines, that.options, _opt);
@@ -333,6 +331,7 @@ module.exports = class SFCompiler{
 		const that = this;
 		const {cache, processing} = this;
 		const relations = category[which];
+		if(!relations) throw new Error(`'${which}' is not a recognized category for extraction`);
 
 		// Return if the compiler still processing the same category
 		for (var i = 0; i < relations.length; i++) {
@@ -344,6 +343,7 @@ module.exports = class SFCompiler{
 		var code = sourceInit[which];
 		var currentLines = 1;
 
+		options._opt ??= {};
 		if(options._opt.header){
 			code = options._opt.header + '\n' + code;
 			currentLines = options._opt.header.split('\n').length+1;
@@ -356,7 +356,10 @@ module.exports = class SFCompiler{
 
 		for(const path in cache){
 			const content = cache[path];
-			map.setSourceContent(path, content.raw);
+
+			if(path.startsWith(sourceRoot))
+				map.setSourceContent(path, content.raw);
+			else map.setSourceContent(sourceRoot+path, content.raw);
 
 			for(const fenceName in content){
 				if(fenceName === 'raw' || isInCategory(relations, fenceName) === false)
