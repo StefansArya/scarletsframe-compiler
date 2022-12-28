@@ -1,4 +1,6 @@
-module.exports = function(obj, gulp){
+module.exports = SFCompiler;
+
+function SFCompiler(obj, gulp){
 if(!obj.hotSourceMapContent) obj.hotSourceMapContent = true;
 if(!obj.hotReload) obj.hotReload = {};
 let { startupCompile } = obj;
@@ -190,3 +192,46 @@ gulp.task('compile-sf', done => compileOnly(done, 'sf'));
 
 return Exports;
 };
+
+SFCompiler.transpileCode = function(code){
+	let content = code.split('\n## ');
+	if(content.length === 1 && code.slice(0, 2) !== '##'){
+		console.log("The .sf file doesn't seems to have any fences, make sure you already put '## js-global' or something else. File: "+root+path);
+		return {};
+	}
+
+	var lines = 0;
+	if(content[0].slice(0, 3) === '## '){
+		content[0] = content[0].slice(3);
+		lines = 1;
+	}
+	else{
+		lines = content[0].split('\n').length;
+		content.shift();
+	}
+
+	lines += 1;
+
+	let list = {};
+	for (let i=0; i < content.length; i++) {
+		let temp = content[i];
+		let newLineIndex = temp.indexOf('\n');
+		let which = temp.slice(0, newLineIndex).replace('\r', '');
+		if(which.indexOf('comment') === 0) continue;
+
+		temp = temp.slice(newLineIndex+1);
+
+		var tags = false;
+		if(which.includes('.')){
+			[which, ...tags] = which.split(' ').join('').split('.');
+		}
+
+		list[which] = {
+			code: temp,
+			tags,
+			map: null, // ToDo
+		};
+	}
+
+	return list;
+}

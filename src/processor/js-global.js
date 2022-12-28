@@ -107,6 +107,13 @@ module.exports = function(path, content, callback, offset, options, obj){
 		content = content.split('#this.path').join(`"${prefix + path.fileName}"`);
 	}
 
+	if(content.includes('#this.html')){
+		let prefix = options.htmlPrefix || '';
+		if(options.htmlPrefix) prefix += '/';
+
+		content = content.split('#this.html').join(`window.templates["${prefix + path.fileName}"]`);
+	}
+
 	result.content = content;
 	result.lines = lines;
 	callback(result);
