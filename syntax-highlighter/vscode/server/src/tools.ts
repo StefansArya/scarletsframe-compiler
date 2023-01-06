@@ -32,9 +32,13 @@ export function scarletsFrameVirtualRegion(documentText: string, position: any):
 			section = temp.slice(0, newLineIndex-1);
 			_length += 3; // "## " -> the fence
 
-			if(_length <= posLineLength) posExt = section.match(/\w+/)[0];
-			section = section + '.' + section.match(/\w+/)[0];
-			temp = ' '.repeat(newLineIndex) + temp.slice(newLineIndex);
+			let _sec = section.match(/\w+/)?.[0] || 'md';
+
+			if(_length <= posLineLength) posExt = _sec;
+			section = section + '.' + _sec;
+
+			if(newLineIndex > 0)
+				temp = ' '.repeat(newLineIndex) + temp.slice(newLineIndex);
 
 			if(_length <= posLineLength) posSection = section;
 		}
