@@ -12,5 +12,9 @@ The syntax highlight have some issue when using HTML template inside of embedded
 ![Code_ouc6BxJqQb](https://user-images.githubusercontent.com/11073373/100576300-762bb000-3310-11eb-8214-c9cdfd92c4eb.png)
 
 ## Release Notes
+## 0.0.2
+- Add LSP support
+- Add some snippets
+
 ### 0.0.1
 - Adding syntax highlighter support for `.sf` extension

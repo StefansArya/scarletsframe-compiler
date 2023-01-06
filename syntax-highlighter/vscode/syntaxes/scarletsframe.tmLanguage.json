@@ -82,12 +82,12 @@
 					"name": "meta.embedded.block.js",
 					"patterns":[{"include": "source.js"}]
 				}, {
-					"begin": "(@|:)([a-z\\._A-Z0-9]+)(?![\\w:-])",
+					"begin": "[@:][a-z\\._A-Z0-9]+(?![\\w:-])",
 					"comment": "ScarletsFrame attributes, HTML5 event handlers",
 					"beginCaptures": {
 			            "0": {"name": "entity.other.attribute-name.html"}
 					},
-					"end": "(?=\\s*+[^=\\s])",
+					"end": "(?=\\s+[^=\\s])",
 					"endCaptures": {
 						"0": {"name": "punctuation.definition.string.begin.html"}
 					},

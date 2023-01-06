@@ -1,0 +1,30 @@
+{
+	"## html ... sf.model": {
+		"prefix": "html",
+		"body": [
+			"## html",
+			"<sf-m name=\"$1\">\n\t<div></div>\n</sf-m>",
+			"",
+			"## scss-global",
+			"sf-m[name=\"$1\"] {\n\tbackground: black;\n}",
+			"",
+			"## js-global",
+			"sf.model(\"$1\", My => {\n\tMy.init = function(){$0}\n});",
+		],
+		"description": "ScarletsFrame Model"
+	},
+	"## html ... sf.component": {
+		"prefix": "html",
+		"body": [
+			"## html",
+			"<$1>\n\t<div></div>\n</$1>",
+			"",
+			"## scss-global",
+			"$1 {\n\tbackground: black;\n}",
+			"",
+			"## js-global",
+			"sf.component(\"$1\", class extends sf.Model {\n\tinit(){$0}\n});",
+		],
+		"description": "ScarletsFrame Model"
+	},
+}

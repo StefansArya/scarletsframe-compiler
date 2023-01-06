@@ -4,11 +4,12 @@
 	"author": "ScarletsFiction",
     "publisher": "ScarletsFiction",
     "license": "MIT",
+    "icon": "images/logo.jpg",
     "repository": {
         "url": "https://github.com/StefansArya/scarletsframe-compiler/syntax-highlighter"
     },
     "description": "An extension for working with ScarletsFrame's framework",
-    "version": "0.0.1",
+    "version": "0.0.2",
 	"engines": {
 		"vscode": "^1.74.0"
 	},
@@ -28,7 +29,13 @@
             "language": "scarletsframe",
             "scopeName": "source.sf",
             "path": "./syntaxes/scarletsframe.tmLanguage.json"
-        }]
+        }],
+        "snippets": [
+          {
+            "language": "scarletsframe",
+            "path": "./snippets/scarletsframe.code-snippets"
+          }
+        ]
     },
 	"scripts": {
 		"vscode:prepublish": "cd client && pnpm install && cd .. && npm run compile",
