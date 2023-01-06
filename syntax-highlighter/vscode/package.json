@@ -1,55 +1,66 @@
 {
     "name": "scarletsframe",
     "displayName": "ScarletsFrame",
-	"author": "ScarletsFiction",
+    "author": "ScarletsFiction",
     "publisher": "ScarletsFiction",
     "license": "MIT",
-    "icon": "images/logo.jpg",
+    "icon": "images/logo.png",
     "repository": {
         "url": "https://github.com/StefansArya/scarletsframe-compiler/syntax-highlighter"
     },
     "description": "An extension for working with ScarletsFrame's framework",
     "version": "0.0.2",
-	"engines": {
-		"vscode": "^1.74.0"
-	},
-	"activationEvents": [],
-	"main": "./client/out/index",
+    "engines": {
+        "vscode": "^1.74.0"
+    },
+    "activationEvents": [],
+    "main": "./client/out/index",
     "categories": [
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "scarletsframe",
-            "aliases": ["ScarletsFrame", "scarletsframe"],
-            "extensions": [".sf"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "scarletsframe",
-            "scopeName": "source.sf",
-            "path": "./syntaxes/scarletsframe.tmLanguage.json"
-        }],
+        "languages": [
+            {
+                "id": "scarletsframe",
+                "aliases": [
+                    "ScarletsFrame",
+                    "scarletsframe"
+                ],
+                "extensions": [
+                    ".sf"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "scarletsframe",
+                "scopeName": "source.sf",
+                "path": "./syntaxes/scarletsframe.tmLanguage.json"
+            }
+        ],
         "snippets": [
-          {
-            "language": "scarletsframe",
-            "path": "./snippets/scarletsframe.code-snippets"
-          }
+            {
+                "language": "scarletsframe",
+                "path": "./snippets/scarletsframe.code-snippets"
+            }
         ]
     },
-	"scripts": {
-		"vscode:prepublish": "cd client && pnpm install && cd .. && npm run compile",
-		"compile": "tsc -b",
-		"watch": "tsc -b -w",
-		"lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
-		"postinstall": "cd client && pnpm install && cd ../server && pnpm install && cd .."
-	},
-	"devDependencies": {
-		"@types/mocha": "^5.2.7",
-		"@types/node": "^16.11.7",
-		"@typescript-eslint/eslint-plugin": "^4.23.0",
-		"@typescript-eslint/parser": "^4.23.0",
-		"eslint": "^7.26.0",
-		"typescript": "^4.5.5"
-	}
+    "scripts": {
+        "vscode:prepublish": "npm run esbuild-client && npm run esbuild-server",
+        "esbuild-client": "cd client && pnpm i && tsc -b",
+        "esbuild-server": "cd server && pnpm i && tsc -b",
+        "compile": "tsc -b",
+        "watch": "tsc -b -w",
+        "lint": "eslint ./client/src ./server/src --ext .ts,.tsx",
+        "postinstall": "cd client && pnpm install && cd ../server && pnpm install && cd .."
+    },
+    "devDependencies": {
+        "@types/mocha": "^5.2.7",
+        "@types/node": "^16.11.7",
+        "@typescript-eslint/eslint-plugin": "^4.23.0",
+        "@typescript-eslint/parser": "^4.23.0",
+        "eslint": "^7.26.0",
+        "typescript": "^4.5.5"
+    }
 }

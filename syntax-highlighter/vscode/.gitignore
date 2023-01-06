@@ -1,2 +1,4 @@
 node_modules
 **/*.map
+server/out/**
+client/out/**

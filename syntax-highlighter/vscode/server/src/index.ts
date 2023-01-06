@@ -3,7 +3,7 @@ import { getCSSLanguageService, getLESSLanguageService, getSCSSLanguageService }
 import { createConnection, InitializeParams, ProposedFeatures, TextDocuments, TextDocumentSyncKind } from 'vscode-languageserver/node';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { scarletsFrameVirtualRegion } from './tools';
-import * as ts from "typescript";
+// import * as ts from "typescript";
 
 let connection = createConnection(ProposedFeatures.all);
 let documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -20,27 +20,27 @@ function findTextXYPos(content, pos){
 	};
 }
 
-function tsValidate(content: string): Diagnostic[] {
-	ts.createSourceFile('src/index.ts', content, ts.ScriptTarget.ES2015, true);
-	let diagnostics = ts.transpileModule(content, { reportDiagnostics: true, compilerOptions : {
-		noEmit: true,
-		// noImplicitAny: true,
-		target: ts.ScriptTarget.ES5,
-		module: ts.ModuleKind.CommonJS
-	}}).diagnostics;
+// function tsValidate(content: string): Diagnostic[] {
+// 	ts.createSourceFile('src/index.ts', content, ts.ScriptTarget.ES2015, true);
+// 	let diagnostics = ts.transpileModule(content, { reportDiagnostics: true, compilerOptions : {
+// 		noEmit: true,
+// 		// noImplicitAny: true,
+// 		target: ts.ScriptTarget.ES5,
+// 		module: ts.ModuleKind.CommonJS
+// 	}}).diagnostics;
 
-	return diagnostics.map(v => {
-		return {
-			message: ''+v.messageText,
-			range: {
-				start: findTextXYPos(content, v.start),
-				end: findTextXYPos(content, v.start + v.length)
-			},
-			code: v.code,
-			source: v.source,
-		};
-	});
-}
+// 	return diagnostics.map(v => {
+// 		return {
+// 			message: ''+v.messageText,
+// 			range: {
+// 				start: findTextXYPos(content, v.start),
+// 				end: findTextXYPos(content, v.start + v.length)
+// 			},
+// 			code: v.code,
+// 			source: v.source,
+// 		};
+// 	});
+// }
 
 connection.onInitialize((_params: InitializeParams) => {
 	// documents.onDidClose(e => {
@@ -96,10 +96,10 @@ async function validateTextDocument(textDocument: TextDocument) {
 			else if(posExt === 'ts') languageId = 'typescript';
 			else languageId = posExt;
 
-			if(posExt === 'ts'){
-				diagnostics.push(...tsValidate(docs[key]));
-				continue;
-			}
+			// if(posExt === 'ts'){
+			// 	diagnostics.push(...tsValidate(docs[key]));
+			// 	continue;
+			// }
 
 			let doc = TextDocument.create(latestTextDocument.uri, languageId, 1, docs[key]);
 			if(posExt === 'css'){

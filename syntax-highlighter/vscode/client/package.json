@@ -5,11 +5,14 @@
 		"vscode": "^1.43.0"
 	},
 	"dependencies": {
-		"vscode-html-languageservice": "^5.0.3",
-		"vscode-css-languageservice": "^6.2.1",
 		"vscode-languageclient": "^8.0.2"
 	},
 	"devDependencies": {
+		"esbuild": "^0.16.14",
+		"@types/node": "^16.11.7",
 		"@types/vscode": "^1.43.0"
+	},
+	"scripts": {
+		"build": "esbuild ./src/index.ts --bundle --outfile=out/index.js --external:vscode --external:typescript --format=cjs --platform=node --minify --sourcemap"
 	}
 }

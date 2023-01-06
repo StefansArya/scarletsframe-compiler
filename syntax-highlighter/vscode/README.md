@@ -1,5 +1,5 @@
 # ScarletsFrame
-This is an extension for ScarletsFrame's framework. Currently this only a syntax highlighter.
+This is an extension for ScarletsFrame's framework.
 
 ## Features
 Syntax Highlighting for `.sf` file extension.
