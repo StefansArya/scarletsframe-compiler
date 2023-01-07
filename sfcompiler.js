@@ -6,7 +6,7 @@ if(!obj.hotReload) obj.hotReload = {};
 let { startupCompile } = obj;
 
 // Load dependency
-let { collectSourcePath, watchPath, preprocessPath } = require('./recipes/_utils.js');
+let { collectSourcePath, watchPath } = require('./recipes/_utils.js');
 var SFLang = require('./sf-lang')(obj.translate);
 var chalk = require('chalk');
 var fs = require('fs');
@@ -19,6 +19,7 @@ var firstCompile = {
 	css:0,
 	html:0,
 	sf:0,
+	ts:0,
 };
 
 var Exports = {
@@ -40,6 +41,7 @@ var Exports = {
 		watchPath('scss', Exports.taskSCSS.addTask, temp);
 		watchPath('html', Exports.taskHTML.addTask, temp);
 		watchPath('sf', Exports.taskSF.addTask, temp);
+		watchPath('ts', Exports.taskTS.addTask, temp);
 	},
 	deleteConfig(obj){
 		// Currently this will only unwatch for file change
@@ -47,6 +49,7 @@ var Exports = {
 		(obj.scss || obj.sass) && Exports.taskSCSS.removeTask(obj);
 		obj.html && Exports.taskHTML.removeTask(obj);
 		obj.sf && Exports.taskSF.removeTask(obj);
+		obj.ts && Exports.taskTS.removeTask(obj);
 	},
 };
 
@@ -78,6 +81,12 @@ function init(only){
 		console.log(`[${chalk.gray('Prepared')}] .sf handler`);
 	}
 
+	if(!only || only === 'ts'){
+		Exports.taskTS = require('./recipes/ts.js')(pack);
+		watchPath('ts', Exports.taskTS.addTask, obj.path);
+		console.log(`[${chalk.gray('Prepared')}] .ts handler`);
+	}
+
 	obj.onInit && obj.onInit();
 	progressCounter(true);
 }
@@ -86,7 +95,7 @@ let hasProgress = false;
 let lastProgress = '';
 let lastProgressWait = 1200; // 10 mins (interval 500ms, 600s / 0.5s = 1200)
 function progressCounter(newline){
-	let temp_ = `${firstCompile.js}${firstCompile.css}${firstCompile.html}${firstCompile.sf}`;
+	let temp_ = `${firstCompile.js}${firstCompile.css}${firstCompile.html}${firstCompile.sf}${firstCompile.ts}`;
 	if(lastProgress !== temp_) lastProgressWait = 1200;
 	else {
 		lastProgressWait--;
@@ -97,12 +106,11 @@ function progressCounter(newline){
 	}
 
 	lastProgress = temp_;
-	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0){
+	if(firstCompile.js <= 0 && firstCompile.css <= 0 && firstCompile.html <= 0 && firstCompile.sf <= 0 && firstCompile.ts <= 0){
 		if(hasProgress){
-			console.log("Finished, terminating in 5 second if not closed");
-			setTimeout(function(){
-				process.exit();
-			}, 5000);
+			let second = process.env.SF_COMPILER_IDLE_TERMINATE_TIME || 5;
+			console.log("Finished, terminating in "+second+" second if not closed");
+			setTimeout(()=> process.exit(), second * 1000);
 			return true;
 		}
 		return false;
@@ -132,6 +140,12 @@ function progressCounter(newline){
 	if(firstCompile.sf > 0){
 		if(notFirst) process.stdout.write(', ');
 		process.stdout.write(firstCompile.sf+" SF");
+		notFirst = true;
+	}
+
+	if(firstCompile.ts > 0){
+		if(notFirst) process.stdout.write(', ');
+		process.stdout.write(firstCompile.ts+" TS");
 		notFirst = true;
 	}
 
@@ -189,6 +203,7 @@ gulp.task('compile-js', done => compileOnly(done, 'js'));
 gulp.task('compile-css', done => compileOnly(done, 'css'));
 gulp.task('compile-html', done => compileOnly(done, 'html'));
 gulp.task('compile-sf', done => compileOnly(done, 'sf'));
+gulp.task('compile-ts', done => compileOnly(done, 'ts'));
 
 return Exports;
 };

@@ -127,7 +127,10 @@ function preprocessPath(key, temp, which){
 	checkIncompatiblePath(key, temp);
 
 	ref.opt = {
-		base: ref.root || (ref.combine.constructor === String ? ref.combine : ref.combine[0]).split('/')[0]
+		base: ref.root || (
+				ref.watch?.[0]
+				|| (ref.combine.constructor === String ? ref.combine : ref.combine[0])
+			).split('/')[0]
 	};
 
 	const strip = (temp.stripURL || '$%');
