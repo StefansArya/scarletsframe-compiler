@@ -92,11 +92,10 @@ function tsTask(path){
 
 		if(includeSourceMap)
 			temp = temp.pipe(sourcemaps.init());
-			console.log(path.ts.file)
 
 		temp = temp.pipe(esbuilder(Object.assign({
             outfile: path.ts.file,
-			minify: true || Obj._compiling || undefined,
+			minify: Obj._compiling || undefined,
             bundle: true,
         }, path.ts.esbuild || {}))).on('error', swallowError);
 
