@@ -90,20 +90,16 @@ function tsTask(path){
 		removeOldMap(path.ts.folder, path.ts.file.replace('.ts', ''), '.ts');
 		var temp = gulp.src(path.ts.entry, path.ts.opt);
 
-		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.init());
-
 		temp = temp.pipe(esbuilder(Object.assign({
             outfile: path.ts.file,
+			sourcemap: 'external',
+			sourcesContent: true,
 			minify: Obj._compiling || undefined,
             bundle: true,
         }, path.ts.esbuild || {}))).on('error', swallowError);
 
 		if(path.ts.header)
 			temp = temp.pipe(header(path.ts.header+"\n"));
-
-		if(includeSourceMap)
-			temp = temp.pipe(sourcemaps.write('.'));
 
 		if(path.versioning)
 			versioning(path.versioning, location+'?', startTime);
