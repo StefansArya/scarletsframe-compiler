@@ -16,5 +16,3 @@ Roses are red, violets are blue. Please follow these tutorial for your text edit
 Feel free to fill an issue or pull request if you have a question or improvement.
 
 ![sublime_text_1u1x4GIDHs](https://user-images.githubusercontent.com/11073373/100576510-e1758200-3310-11eb-87ea-27f5beddfa21.png)
-
-If you're creating a new syntax highlighter and using ScarletsFrame as the reference, please credit me by putting a link or share this project. I was having some difficult day figuring out because the tutorial/documentation was very limited and no one help me :(
