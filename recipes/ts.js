@@ -79,6 +79,7 @@ function tsTask(path){
 
 	let esbuilder = Obj._compiling ? esbuild : esbuild.createGulpEsbuild({ incremental: true });
 
+	let workDir = process.cwd();
 	return function(){
 		obj.onCompiled && firstCompile.ts++;
 
@@ -114,9 +115,34 @@ function tsTask(path){
 			path.onFinish && path.onFinish('TS', location);
 			path.ts.onFinish && path.ts.onFinish(location);
 
-			if(Obj._browserSync && hotReload.ts !== false){
+			if(Obj._browserSync){
 				setTimeout(function(){
-					Obj._browserSync.reload(path.ts.folder+path.ts.file);
+					let _path = path.ts.folder+path.ts.file;
+					if(hotReload.ts === false){
+						Obj._browserSync.reload(_path);
+					}
+					else {
+						var temp = fs.readFileSync(_path, {encoding:'utf8', flag:'r'});
+
+						let address = Obj._browserSync.instance.server.address();
+						address = `http://${
+							address.address === '::' ? 'localhost' : address.address
+						}:${address.port}`;
+
+						let fileLocation = _path.replace(workDir.replace(/\\/g, '/'), '');
+						if(fileLocation === _path){
+							return console.log("Current working directory for server is not in relative directory with the bundled module directory, hot reload will inactive");
+						}
+
+						temp = `!async function(){
+						${temp.replace(/import\.meta/g, `({ url: ${
+							JSON.stringify(address+fileLocation)
+						}})`)}}();`;
+
+						Obj._browserSync.sockets.emit('sf-hot-js', temp);
+						Obj._browserSync.notify("TS Reloaded");
+					}
+
 					Obj._browserSync.notify("TS Reloaded");
 				}, 100);
 			}
