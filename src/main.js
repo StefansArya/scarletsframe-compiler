@@ -151,7 +151,15 @@ module.exports = class SFCompiler{
 			else cached = this.sourcePending[path] = {};
 		}
 
+		let splitPath = {
+			fileName: path,
+			base: _opt.opt.base,
+			directory: root,
+			relativePath: (root+path).replace(process.cwd().split('\\').join('/')+'/', ''),
+		};
+
 		cached.raw = raw;
+		cached._splitPath = splitPath;
 
 		let content = raw.split('\n## ');
 		if(content.length === 1 && raw.slice(0, 2) !== '##'){
@@ -173,13 +181,6 @@ module.exports = class SFCompiler{
 		}
 
 		lines += 1;
-
-		let splitPath = {
-			fileName:path,
-			base:_opt.opt.base,
-			directory:root,
-			relativePath: (root+path).replace(process.cwd().split('\\').join('/')+'/', ''),
-		};
 
 		let hasHTML = -1;
 		if(debugging)
@@ -318,7 +319,7 @@ module.exports = class SFCompiler{
 
 		// Check old category cache that have been deleted on .sf file
 		for(var key in cached){
-			if(key === 'raw') continue;
+			if(key === 'raw' || key === '_splitPath') continue;
 			if(!checkNew.has(key))
 				delete cached[key];
 		}
@@ -357,10 +358,7 @@ module.exports = class SFCompiler{
 		for(const path in cache){
 			const content = cache[path];
 
-			if(path.startsWith(sourceRoot))
-				map.setSourceContent(path, content.raw);
-			else map.setSourceContent(sourceRoot+path, content.raw);
-
+			map.setSourceContent(content._splitPath.relativePath, content.raw);
 			for(const fenceName in content){
 				if(fenceName === 'raw' || isInCategory(relations, fenceName) === false)
 					continue;
