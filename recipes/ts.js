@@ -27,7 +27,7 @@ function addTask(name, obj){
 	gulp.task(name, tsTask(obj));
 
 	if(obj.autoGenerate)
-		indexAutoLoad(obj, 'ts', 'TS');
+		indexAutoLoad(obj, 'ts', 'MJS');
 
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
@@ -123,8 +123,10 @@ function tsTask(path){
 					}
 					else {
 						var temp = fs.readFileSync(_path, {encoding:'utf8', flag:'r'});
+						let server = Obj._browserSync.instance.server;
+						if(!server) return;
 
-						let address = Obj._browserSync.instance.server.address();
+						let address = server.address();
 						address = `http://${
 							address.address === '::' ? 'localhost' : address.address
 						}:${address.port}`;
@@ -164,7 +166,9 @@ function removeTask(obj){
 		let data = fs.readFileSync(obj.versioning, 'utf8');
 
 		data = data.split(temp);
-		data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
+
+		if(data[1])
+			data[1] = data[1].replace(/^.*?\n[\t\r ]+/s, '');
 
 		fs.writeFileSync(obj.versioning, data.join(''), 'utf8');
 	}
