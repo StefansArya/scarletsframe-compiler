@@ -75,7 +75,7 @@ function addTask(name, obj){
 
 function scssTask(path){
 	if(!sass)
-		sass = require('../gulp-sass.js');
+		sass = require('gulp-sass')(require('sass'));
 
 	var folderLastPath = path.scss.folder.slice(-1);
 	if(folderLastPath !== '/' && folderLastPath !== '\\')

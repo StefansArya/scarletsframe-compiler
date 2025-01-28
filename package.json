@@ -3,7 +3,7 @@
   "author": "StefansArya",
   "description": "A compiler for ScarletsFrame",
   "main": "sfcompiler.js",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "MIT",
   "dependencies": {
     "autoprefixer": "^10.4.17",
