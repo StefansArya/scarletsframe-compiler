@@ -55,6 +55,7 @@ function addTask(name, obj){
 
 		if(obj.static !== void 0){
 			function onChange(file, stats){
+				if(stats == null) stats = fs.statSync(file);
 				if(!stats) return;
 				if(last === stats.ctimeMs)
 					return;
@@ -80,6 +81,7 @@ function addTask(name, obj){
 
 		var basePath = obj.html.opt.base+'/';
 		function onChange(file, stats){
+			if(stats == null) stats = fs.statSync(file);
 			if(!stats) return call();
 			if(last === stats.ctimeMs)
 				return;

@@ -69,6 +69,8 @@ function addTask(name, obj){
 		// var basePath = obj.sf.opt.base+'/';
 		obj.sf.opt.base = '.';
 		function onChange(file, stats){
+			if(stats == null) stats = fs.statSync(file);
+			if(!stats) return;
 			if(last === stats.ctimeMs)
 				return;
 

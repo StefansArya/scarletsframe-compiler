@@ -35,6 +35,7 @@ function addTask(name, obj){
 	var call = gulp.series(name);
 	if(Obj._compiling === false){
 		function onChange(file, stats){
+			if(stats == null) stats = fs.statSync(file);
 			if(!stats) return call();
 
 			if(last === stats.ctimeMs)

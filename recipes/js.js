@@ -118,6 +118,7 @@ function addTask(name, obj){
 		}
 
 		function onChange(file, stats){
+			if(stats == null) stats = fs.statSync(file);
 			if(!stats) return call();
 			if(last === stats.ctimeMs)
 				return;
